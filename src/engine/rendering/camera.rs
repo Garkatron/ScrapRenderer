@@ -1,6 +1,5 @@
-use std::f32::consts::PI;
-
-use crate::engine::{rendering::renderer::Renderer, types::{colour::COLOUR, object3d::Object3D, triangle::Triangle, vector::{matrix4x4::Matrix4x4, vector3::Vector3}}};
+#![allow(unused_variables)]
+use crate::engine::types::vector::vector3::Vector3;
 
 pub struct Camera3D {
    

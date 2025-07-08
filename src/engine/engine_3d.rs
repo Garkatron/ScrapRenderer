@@ -8,7 +8,7 @@ impl Engine3D {
         self.renderer.render(delta_time);
     }
     
-    pub fn update(&mut self, delta_time: f32) {
+    pub fn update(&mut self, _delta_time: f32) {
 
     } 
 }

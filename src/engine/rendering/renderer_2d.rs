@@ -1,4 +1,8 @@
-use crate::engine::{rendering::renderer::Renderer, types::vector::vector2i::Vector2i};
+#![allow(unused_variables)]
+use crate::engine::{
+    rendering::renderer::Renderer,
+    types::{colour::COLOUR, vector::vector2i::Vector2i},
+};
 
 pub struct Renderer2D {
     buffer: Vec<u32>,
@@ -13,16 +17,19 @@ impl Renderer2D {
             buffer,
             width,
             height,
-            window
+            window,
         }
     }
 }
 
 impl Renderer for Renderer2D {
-    fn render(&mut self, delta_time: f32) {
-        self.window
+    fn render(&mut self, _delta_time: f32) {
+        if let Err(e) = self
+            .window
             .update_with_buffer(&self.buffer, self.width, self.height)
-            .unwrap();
+        {
+            eprintln!("Error updating window buffer: {:?}", e);
+        }
     }
     fn clear(&mut self, color: u32) {
         self.buffer.fill(color);
@@ -35,7 +42,6 @@ impl Renderer for Renderer2D {
             }
         }
     }
-    
 
     fn draw_square(&mut self, a: Vector2i, b: Vector2i, color: u32, filled: bool, fill_color: u32) {
         let min_x = a.x.min(b.x);
@@ -59,37 +65,53 @@ impl Renderer for Renderer2D {
 
     // ? https://es.wikipedia.org/wiki/Algoritmo_de_Bresenham
     fn draw_line(&mut self, a: Vector2i, b: Vector2i, color: u32) {
-        let mut x = a.x;
-        let mut y = a.y;
-    
-        let dx = (b.x - a.x).abs();
-        let dy = (b.y - a.y).abs();
-    
-        let sx = if a.x < b.x { 1 } else { -1 };
-        let sy = if a.y < b.y { 1 } else { -1 };
-    
-        let mut err = if dx > dy { dx } else { -dy } / 2;
-        let mut e2;
-    
-        loop {
-            self.draw_pixel(Vector2i::new(x, y), color);
-    
-            if x == b.x && y == b.y {
-                break;
+        let mut x0 = a.x;
+        let mut y0 = a.y;
+        let mut x1 = b.x;
+        let mut y1 = b.y;
+
+        if x0 == x1 && y0 == y1 {
+            self.draw_pixel(Vector2i::new(x0, y0), color);
+            return; // Only draws a pixel
+        }
+
+        // Detect a higher triangle comparing the absolute differense with x and y
+        let mut steep = false;
+        if (x0 - x1).abs() < (y0 - y1).abs() {
+            // Swap cus loop can inter the higher value
+            std::mem::swap(&mut x0, &mut y0);
+            std::mem::swap(&mut x1, &mut y1);
+            steep = true;
+        }
+
+        // Swap f x0 is greather cus we want iterate it over left-to-righ
+        if x0 > x1 {
+            std::mem::swap(&mut x0, &mut x1);
+            std::mem::swap(&mut y0, &mut y1);
+        }
+
+        // Calc differences
+        let dx = x1 - x0;
+        let dy = y1 - y0;
+        let derror2 = dy.abs() * 2;
+        let mut error2 = 0;
+        let ystep = if y0 < y1 { 1 } else { -1 }; // Up/Down
+
+        let mut y = y0;
+        for x in x0..=x1 {
+            if steep {
+                self.draw_pixel(Vector2i::new(y, x), color);
+            } else {
+                self.draw_pixel(Vector2i::new(x, y), color);
             }
-    
-            e2 = err;
-            if e2 > -dx {
-                err -= dy;
-                x += sx;
-            }
-            if e2 < dy {
-                err += dx;
-                y += sy;
+            // if error i'ts greater than dx, we need step over y
+            error2 += derror2;
+            if error2 > dx {
+                y += ystep;
+                error2 -= dx * 2;
             }
         }
     }
-    
 
     fn height(&self) -> usize {
         self.height
@@ -103,8 +125,91 @@ impl Renderer for Renderer2D {
     }
 
     fn draw_triangle(&mut self, a: Vector2i, b: Vector2i, c: Vector2i, color: u32) {
-       self.draw_line(a, b, color);
-       self.draw_line(b, c, color);
-       self.draw_line(c, a, color);
+        self.draw_line(a, b, color);
+        self.draw_line(b, c, color);
+        self.draw_line(c, a, color);
+    }
+
+    fn get_x_at_y(&self, p1: Vector2i, p2: Vector2i, y: i32) -> i32 {
+        if p1.y == p2.y {
+            return p1.x; // Horizontal line, return x1
+        }
+        if y < p1.y.min(p2.y) || y > p1.y.max(p2.y) {
+            return i32::MAX; // Out of range
+        }
+        // Linear interpolation
+        let t = (y - p1.y) as f32 / (p2.y - p1.y) as f32;
+        let x = p1.x as f32 + t * (p2.x - p1.x) as f32;
+        x.round() as i32 // Round to nearest integer
+    }
+
+    // ? https://github.com/ssloy/tinyrenderer/wiki/Lesson-2:-Triangle-rasterization-and-back-face-culling
+    fn fill_triangle(&mut self, v1: Vector2i, v2: Vector2i, v3: Vector2i, color: u32) {
+        // Make mutable copies to sort
+        let mut a = v1;
+        let mut b = v2;
+        let mut c = v3;
+
+        // Step 1: Sort points by y-coordinate (top to bottom)
+        if a.y > b.y {
+            std::mem::swap(&mut a, &mut b);
+        }
+        if b.y > c.y {
+            std::mem::swap(&mut b, &mut c);
+        }
+        if a.y > b.y {
+            std::mem::swap(&mut a, &mut b);
+        }
+        // Now: a.y <= b.y <= c.y
+
+        let total_height = c.y - a.y;
+
+        // Draw half one
+        for y in a.y..=b.y {
+            let segment_height = b.y - a.y + 1;
+            let alpha = if total_height != 0 {
+                (y - a.y) as f32 / total_height as f32
+            } else {
+                0.0
+            };
+            let beta = if segment_height != 0 {
+                (y - a.y) as f32 / segment_height as f32
+            } else {
+                0.0
+            };
+            let va = a + (c - a) * alpha;
+            let vb = a + (b - a) * beta;
+            
+            for x in va.x.min(vb.x)..=va.x.max(vb.x) {
+                self.draw_pixel(Vector2i { x, y }, color);
+            }
+        }
+
+        // Draw half two
+        for y in b.y..=c.y {
+            let segment_height = c.y - b.y + 1;
+            let alpha = if total_height != 0 {
+                (y - a.y) as f32 / total_height as f32
+            } else {
+                0.0
+            };
+            let beta = if segment_height != 0 {
+                (y - b.y) as f32 / segment_height as f32
+            } else {
+                0.0
+            };
+            let va = a + (c - a) * alpha;
+            let vb = b + (c - b) * beta;
+            
+            if a.x>b.x {std::mem::swap(&mut a,&mut b);}
+
+            for x in va.x.min(va.x)..=va.x.max(vb.x) {
+                self.draw_pixel(Vector2i { x, y }, color);
+            }
+        }
+
+        self.draw_line(a, b, COLOUR::MAGENTA.to_u32());
+        self.draw_line(b, c, COLOUR::RED.to_u32());
+        self.draw_line(c, a, COLOUR::CYAN.to_u32());
     }
 }

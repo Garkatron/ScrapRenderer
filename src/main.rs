@@ -27,6 +27,7 @@ fn main() {
         WIDTH,
         HEIGHT,
         WindowOptions {
+            borderless: false,
             resize: false,
             scale: minifb::Scale::X2, 
             ..WindowOptions::default()

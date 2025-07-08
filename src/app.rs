@@ -9,7 +9,7 @@ use crate::engine::{
         colour::COLOUR,
         object3d::Object3D,
         triangle::Triangle,
-        vector::{matrix4x4::Matrix4x4, vector3::Vector3},
+        vector::{matrix4x4::Matrix4x4, vector2i::Vector2i, vector3::Vector3},
     },
 };
 
@@ -26,7 +26,7 @@ impl MyApp {
         let mut objects = vec![];
 
         objects.push(Mesh {
-            obj: Object3D::new(Vector3::new(0.0, 0.0, 5.0), Vector3::new(1.0, 10.0, 0.0)),
+            obj: Object3D::new(Vector3::new(0.0, 0.0, 5.0), Vector3::new(5.0, 10.0, 0.0)),
             tris: vec![
                 // SOUTH
                 Triangle {
@@ -327,14 +327,23 @@ impl MyApp {
                         v.y = (1.0 - v.y) * 0.5 * self.engine.renderer.height() as f32;
                     }
 
-                    self.engine.renderer.draw_triangle(
+
+                    /*self.engine.renderer.fill_triangle(
                         projected.v1.into(),
                         projected.v2.into(),
                         projected.v3.into(),
-                        COLOUR::GREEN.to_u32(),
-                    );
+                        COLOUR::BLUE.to_u32(),
+                    );*/
+                   
+
+                  
+
                 }
             }
+            self.engine.renderer.fill_triangle(Vector2i::new(10, 70), Vector2i::new(50, 160), Vector2i::new(70, 80), COLOUR::BLUE.to_u32());
+            self.engine.renderer.fill_triangle(Vector2i::new(180, 50), Vector2i::new(150, 1), Vector2i::new(70, 180), COLOUR::RED.to_u32());
+            self.engine.renderer.fill_triangle(Vector2i::new(180, 150), Vector2i::new(120, 160), Vector2i::new(130, 180), COLOUR::PINK.to_u32());
+
         }
 
         self.engine.render(delta_time);

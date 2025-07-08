@@ -51,6 +51,13 @@ impl Renderer for Renderer3D {
     }
 
     fn draw_triangle(&mut self, a: Vector2i, b: Vector2i, c: Vector2i, color: u32) {
-        self.renderer_2d.draw_triangle(a, b, c, color);
+        self.renderer_2d.draw_triangle(a, b, c, color)
+    }
+
+    fn fill_triangle(&mut self, a: Vector2i, b: Vector2i, c: Vector2i, color: u32) {
+        self.renderer_2d.fill_triangle(a, b, c, color)
+    }
+    fn get_x_at_y(&self, p1: Vector2i, p2: Vector2i, y: i32) -> i32 {
+        self.renderer_2d.get_x_at_y(p1, p2, y)
     }
 }

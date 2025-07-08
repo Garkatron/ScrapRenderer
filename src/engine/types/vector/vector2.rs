@@ -1,6 +1,6 @@
 use std::ops::{Add, Mul, Sub};
 
-use crate::engine::types::vector::vector_ops::VectorOps;
+use crate::engine::types::vector::{vector2i::Vector2i, vector_ops::VectorOps};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Vector2 {
@@ -94,6 +94,15 @@ impl Mul<f32> for Vector2 {
         Self {
             x: self.x * factor,
             y: self.y * factor,
+        }
+    }
+}
+
+impl From<Vector2i> for Vector2 {
+    fn from(value: Vector2i) -> Self {
+        Self {
+            x: value.x as f32,
+            y: value.y as f32
         }
     }
 }

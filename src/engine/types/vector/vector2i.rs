@@ -109,3 +109,14 @@ impl Mul<i32> for Vector2i {
         }
     }
 }
+
+impl Mul<f32> for Vector2i {
+    type Output = Self;
+
+    fn mul(self, factor: f32) -> Self::Output {
+        Self {
+            x: ((self.x as f32) * factor).round() as i32, 
+            y: ((self.y as f32) * factor).round() as i32, 
+        }
+    }
+}

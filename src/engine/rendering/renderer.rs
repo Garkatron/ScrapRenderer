@@ -10,4 +10,6 @@ pub trait Renderer {
     fn height(&self) -> usize;
     fn window(&self) -> &minifb::Window;
     fn draw_triangle(&mut self, a: Vector2i, b: Vector2i, c: Vector2i, color: u32);
+    fn fill_triangle(&mut self, a: Vector2i, b: Vector2i, c: Vector2i, color: u32);
+    fn get_x_at_y(&self, p1: Vector2i, p2: Vector2i, y: i32) -> i32;
 }
