@@ -1,4 +1,4 @@
-use crate::engine::types::vector::Vector3;
+use crate::engine::types::vector::vector3::Vector3;
 
 #[derive(Clone, PartialEq)]
 pub struct Triangle {

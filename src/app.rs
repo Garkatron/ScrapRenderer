@@ -9,15 +9,16 @@ use crate::engine::{
         colour::COLOUR,
         object3d::Object3D,
         triangle::Triangle,
-        vector::{Matrix4x4, Vector3},
+        vector::{matrix4x4::Matrix4x4, vector3::Vector3},
     },
 };
 
 pub struct MyApp {
     pub engine: Engine3D,
     pub objects: Vec<Mesh>,
-    pub camera: Camera3D,
+    pub camera: Vector3,
     pub f_theta: f32,
+    pub mat_proj: Matrix4x4,
 }
 
 impl MyApp {
@@ -25,6 +26,7 @@ impl MyApp {
         let mut objects = vec![];
 
         objects.push(Mesh {
+            obj: Object3D::new(Vector3::new(0.0, 0.0, 5.0), Vector3::new(1.0, 10.0, 0.0)),
             tris: vec![
                 // SOUTH
                 Triangle {
@@ -32,19 +34,16 @@ impl MyApp {
                         x: 0.0,
                         y: 0.0,
                         z: 0.0,
-                        w: 0.0,
                     },
                     v2: Vector3 {
                         x: 0.0,
                         y: 1.0,
                         z: 0.0,
-                        w: 0.0,
                     },
                     v3: Vector3 {
                         x: 1.0,
                         y: 1.0,
                         z: 0.0,
-                        w: 0.0,
                     },
                 },
                 Triangle {
@@ -52,19 +51,16 @@ impl MyApp {
                         x: 0.0,
                         y: 0.0,
                         z: 0.0,
-                        w: 0.0,
                     },
                     v2: Vector3 {
                         x: 1.0,
                         y: 1.0,
                         z: 0.0,
-                        w: 0.0,
                     },
                     v3: Vector3 {
                         x: 1.0,
                         y: 0.0,
                         z: 0.0,
-                        w: 0.0,
                     },
                 },
                 // EAST
@@ -73,19 +69,16 @@ impl MyApp {
                         x: 1.0,
                         y: 0.0,
                         z: 0.0,
-                        w: 0.0,
                     },
                     v2: Vector3 {
                         x: 1.0,
                         y: 1.0,
                         z: 0.0,
-                        w: 0.0,
                     },
                     v3: Vector3 {
                         x: 1.0,
                         y: 1.0,
                         z: 1.0,
-                        w: 0.0,
                     },
                 },
                 Triangle {
@@ -93,19 +86,16 @@ impl MyApp {
                         x: 1.0,
                         y: 0.0,
                         z: 0.0,
-                        w: 0.0,
                     },
                     v2: Vector3 {
                         x: 1.0,
                         y: 1.0,
                         z: 1.0,
-                        w: 0.0,
                     },
                     v3: Vector3 {
                         x: 1.0,
                         y: 0.0,
                         z: 1.0,
-                        w: 0.0,
                     },
                 },
                 // NORTH
@@ -114,19 +104,16 @@ impl MyApp {
                         x: 1.0,
                         y: 0.0,
                         z: 1.0,
-                        w: 0.0,
                     },
                     v2: Vector3 {
                         x: 1.0,
                         y: 1.0,
                         z: 1.0,
-                        w: 0.0,
                     },
                     v3: Vector3 {
                         x: 0.0,
                         y: 1.0,
                         z: 1.0,
-                        w: 0.0,
                     },
                 },
                 Triangle {
@@ -134,19 +121,16 @@ impl MyApp {
                         x: 1.0,
                         y: 0.0,
                         z: 1.0,
-                        w: 0.0,
                     },
                     v2: Vector3 {
                         x: 0.0,
                         y: 1.0,
                         z: 1.0,
-                        w: 0.0,
                     },
                     v3: Vector3 {
                         x: 0.0,
                         y: 0.0,
                         z: 1.0,
-                        w: 0.0,
                     },
                 },
                 // WEST
@@ -155,19 +139,16 @@ impl MyApp {
                         x: 0.0,
                         y: 0.0,
                         z: 1.0,
-                        w: 0.0,
                     },
                     v2: Vector3 {
                         x: 0.0,
                         y: 1.0,
                         z: 1.0,
-                        w: 0.0,
                     },
                     v3: Vector3 {
                         x: 0.0,
                         y: 1.0,
                         z: 0.0,
-                        w: 0.0,
                     },
                 },
                 Triangle {
@@ -175,19 +156,16 @@ impl MyApp {
                         x: 0.0,
                         y: 0.0,
                         z: 1.0,
-                        w: 0.0,
                     },
                     v2: Vector3 {
                         x: 0.0,
                         y: 1.0,
                         z: 0.0,
-                        w: 0.0,
                     },
                     v3: Vector3 {
                         x: 0.0,
                         y: 0.0,
                         z: 0.0,
-                        w: 0.0,
                     },
                 },
                 // TOP
@@ -196,19 +174,16 @@ impl MyApp {
                         x: 0.0,
                         y: 1.0,
                         z: 0.0,
-                        w: 0.0,
                     },
                     v2: Vector3 {
                         x: 0.0,
                         y: 1.0,
                         z: 1.0,
-                        w: 0.0,
                     },
                     v3: Vector3 {
                         x: 1.0,
                         y: 1.0,
                         z: 1.0,
-                        w: 0.0,
                     },
                 },
                 Triangle {
@@ -216,19 +191,16 @@ impl MyApp {
                         x: 0.0,
                         y: 1.0,
                         z: 0.0,
-                        w: 0.0,
                     },
                     v2: Vector3 {
                         x: 1.0,
                         y: 1.0,
                         z: 1.0,
-                        w: 0.0,
                     },
                     v3: Vector3 {
                         x: 1.0,
                         y: 1.0,
                         z: 0.0,
-                        w: 0.0,
                     },
                 },
                 // BOTTOM
@@ -237,19 +209,16 @@ impl MyApp {
                         x: 1.0,
                         y: 0.0,
                         z: 1.0,
-                        w: 0.0,
                     },
                     v2: Vector3 {
                         x: 0.0,
                         y: 0.0,
                         z: 1.0,
-                        w: 0.0,
                     },
                     v3: Vector3 {
                         x: 0.0,
                         y: 0.0,
                         z: 0.0,
-                        w: 0.0,
                     },
                 },
                 Triangle {
@@ -257,31 +226,44 @@ impl MyApp {
                         x: 1.0,
                         y: 0.0,
                         z: 1.0,
-                        w: 0.0,
                     },
                     v2: Vector3 {
                         x: 0.0,
                         y: 0.0,
                         z: 0.0,
-                        w: 0.0,
                     },
                     v3: Vector3 {
                         x: 1.0,
                         y: 0.0,
                         z: 0.0,
-                        w: 0.0,
                     },
                 },
             ],
         });
+
+        let f_near = 0.1;
+        let f_far = 1000.0;
+        let f_fov = 90.0;
+        let f_aspect_ratio = (height / width) as f32;
+        let f_fov_rad = 1.0 / (f_fov * 0.5 / 180.0 * PI).tan();
+
+        let mut mat_proj = Matrix4x4::identity();
+        mat_proj.m[0][0] = f_aspect_ratio * f_fov_rad;
+        mat_proj.m[1][1] = f_fov_rad;
+        mat_proj.m[2][2] = f_far / (f_far - f_near);
+        mat_proj.m[3][2] = (-f_far * f_near) / (f_far - f_near);
+        mat_proj.m[2][3] = 1.0;
+        mat_proj.m[3][3] = 0.0;
 
         Self {
             engine: Engine3D {
                 renderer: Renderer3D::new(vec![0; width * height], width, height, window),
             },
             objects,
-            camera: Camera3D::new(Vector3::new(0.0, 0.1, 5.0, 0.0)),
+            camera: Vector3::new(0.0, 0.0, 0.0),
+            //camera: Camera3D::new(Vector3::new(0.0, 0.1, 5.0), width, height),
             f_theta: 0.0,
+            mat_proj,
         }
     }
 
@@ -290,90 +272,68 @@ impl MyApp {
 
         self.engine.renderer.clear(COLOUR::BLACK.to_u32());
 
-        let mut mat_rot_z = Matrix4x4::identity();
-        let mut mat_rot_x = Matrix4x4::identity();
         self.f_theta += 1.0 * delta_time;
 
-        mat_rot_z.m[0][0] = self.f_theta.cos();
-        mat_rot_z.m[0][1] = self.f_theta.sin();
-        mat_rot_z.m[1][0] = -self.f_theta.sin();
-        mat_rot_z.m[1][1] = self.f_theta.cos();
-        mat_rot_z.m[2][2] = 1.0;
-        mat_rot_z.m[3][3] = 1.0;
+        for Mesh { obj, tris } in &self.objects {
+            for tri in tris {
+                // 1. Rotar triángulo (usando matriz de rotación de objeto)
+                let v1_rot = Matrix4x4::multiply_vec(&obj.rotation_matrix(), &tri.v1);
+                let v2_rot = Matrix4x4::multiply_vec(&obj.rotation_matrix(), &tri.v2);
+                let v3_rot = Matrix4x4::multiply_vec(&obj.rotation_matrix(), &tri.v3);
 
-        mat_rot_x.m[0][0] = 1.0;
-        mat_rot_x.m[1][1] = (self.f_theta * 0.5).cos();
-        mat_rot_x.m[1][2] = (self.f_theta * 0.5).sin();
-        mat_rot_x.m[2][1] = -(self.f_theta * 0.5).sin();
-        mat_rot_x.m[2][2] = (self.f_theta * 0.5).cos();
-        mat_rot_x.m[3][3] = 1.0;
-
-        let mut mat_proj = Matrix4x4 {
-            m: [[0.0; 4], [0.0; 4], [0.0; 4], [0.0; 4]],
-        };
-
-        let width = self.engine.renderer.width() as f32;
-        let height = self.engine.renderer.height() as f32;
-
-        let f_near = 0.1;
-        let f_far = 1000.0;
-        let f_fov = 90.0;
-        let f_aspect_ratio =
-            self.engine.renderer.height() as f32 / self.engine.renderer.width() as f32;
-        let f_fov_rad = 1.0 / (f_fov * 0.5 / 180.0 * PI).tan();
-
-        mat_proj.m[0][0] = f_aspect_ratio * f_fov_rad;
-        mat_proj.m[1][1] = f_fov_rad;
-        mat_proj.m[2][2] = f_far / (f_far - f_near);
-        mat_proj.m[3][2] = (-f_far * f_near) / (f_far - f_near);
-        mat_proj.m[2][3] = 1.0;
-        mat_proj.m[3][3] = 0.0;
-
-        for mesh in &self.objects {
-            for tri in &mesh.tris {
-                // 1. Rotar el triángulo
-                let v1_rot_z = Matrix4x4::multiply_vec(&mat_rot_z, &tri.v1);
-                let v2_rot_z = Matrix4x4::multiply_vec(&mat_rot_z, &tri.v2);
-                let v3_rot_z = Matrix4x4::multiply_vec(&mat_rot_z, &tri.v3);
-
-                let v1_rot_x = Matrix4x4::multiply_vec(&mat_rot_x, &v1_rot_z);
-                let v2_rot_x = Matrix4x4::multiply_vec(&mat_rot_x, &v2_rot_z);
-                let v3_rot_x = Matrix4x4::multiply_vec(&mat_rot_x, &v3_rot_z);
-
-                // 2. Trasladar el triángulo hacia adelante
+                // 2. Trasladar triángulo
                 let translated = Triangle {
-                    v1: Vector3::new(v1_rot_x.x, v1_rot_x.y, v1_rot_x.z + 1.0, 1.0),
-                    v2: Vector3::new(v2_rot_x.x, v2_rot_x.y, v2_rot_x.z + 1.0, 1.0),
-                    v3: Vector3::new(v3_rot_x.x, v3_rot_x.y, v3_rot_x.z + 1.0, 1.0),
-                };
-                // 2. Aplicar la matriz de vista a cada vértice traducido
-                let v1_camera = Matrix4x4::multiply_vec(&self.camera.mat_view, &translated.v1);
-                let v2_camera = Matrix4x4::multiply_vec(&self.camera.mat_view, &translated.v2);
-                let v3_camera = Matrix4x4::multiply_vec(&self.camera.mat_view, &translated.v3);
-
-                // 3. Proyectar los vértices en espacio de cámara a espacio 2D
-                let v1_projected = Matrix4x4::multiply_vec(&mat_proj, &v1_camera);
-                let v2_projected = Matrix4x4::multiply_vec(&mat_proj, &v2_camera);
-                let v3_projected = Matrix4x4::multiply_vec(&mat_proj, &v3_camera);
-
-                // 4. Ya con v*_projected haces la conversión a pantalla
-                let mut projected = Triangle {
-                    v1: v1_projected,
-                    v2: v2_projected,
-                    v3: v3_projected,
+                    v1: Vector3::new(
+                        v1_rot.x + obj.position.x,
+                        v1_rot.y + obj.position.y,
+                        v1_rot.z + obj.position.z,
+                    ),
+                    v2: Vector3::new(
+                        v2_rot.x + obj.position.x,
+                        v2_rot.y + obj.position.y,
+                        v2_rot.z + obj.position.z,
+                    ),
+                    v3: Vector3::new(
+                        v3_rot.x + obj.position.x,
+                        v3_rot.y + obj.position.y,
+                        v3_rot.z + obj.position.z,
+                    ),
                 };
 
-                for v in [&mut projected.v1, &mut projected.v2, &mut projected.v3] {
-                    v.x = (v.x + 1.0) * 0.5 * width;
-                    v.y = (1.0 - v.y) * 0.5 * height;
+                // Calcular normal
+                let l1 = translated.v2 - translated.v1;
+                let l2 = translated.v3 - translated.v1;
+                let normal = l1.cross(&l2).normalize();
+
+                // Evitar dividir por cero o vértices detrás de cámara
+                if translated.v1.z <= 0.0 || translated.v2.z <= 0.0 || translated.v3.z <= 0.0 {
+                    continue;
                 }
 
-                self.engine.renderer.draw_triangle(
-                    projected.v1.to_vi2d(),
-                    projected.v2.to_vi2d(),
-                    projected.v3.to_vi2d(),
-                    COLOUR::YELLOW.to_u32(),
-                );
+                // if normal.z < 0.0 {
+                if normal.x * (translated.v1.x - self.camera.x)
+                    + normal.y * (translated.v1.y - self.camera.y)
+                    + normal.z * (translated.v1.z - self.camera.z) < 0.0
+                {
+                    let mut projected = Triangle {
+                        v1: Matrix4x4::multiply_vec(&self.mat_proj, &translated.v1),
+                        v2: Matrix4x4::multiply_vec(&self.mat_proj, &translated.v2),
+                        v3: Matrix4x4::multiply_vec(&self.mat_proj, &translated.v3),
+                    };
+
+                    // Convertir a coordenadas de pantalla
+                    for v in [&mut projected.v1, &mut projected.v2, &mut projected.v3] {
+                        v.x = (v.x + 1.0) * 0.5 * self.engine.renderer.width() as f32;
+                        v.y = (1.0 - v.y) * 0.5 * self.engine.renderer.height() as f32;
+                    }
+
+                    self.engine.renderer.draw_triangle(
+                        projected.v1.into(),
+                        projected.v2.into(),
+                        projected.v3.into(),
+                        COLOUR::GREEN.to_u32(),
+                    );
+                }
             }
         }
 

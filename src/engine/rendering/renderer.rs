@@ -1,5 +1,4 @@
-use crate::engine::types::vector::{Vector2i};
-
+use crate::engine::types::vector::vector2i::Vector2i;
 
 pub trait Renderer {
     fn render(&mut self, delta_time: f32);

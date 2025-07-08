@@ -23,12 +23,12 @@ fn main() {
     }
 
     let window = Window::new(
-        "Array como imagen 2D - Escape para salir",
+        "Cube",
         WIDTH,
         HEIGHT,
         WindowOptions {
             resize: false,
-            scale: minifb::Scale::X1, 
+            scale: minifb::Scale::X2, 
             ..WindowOptions::default()
         },
     )

@@ -1,4 +1,4 @@
-use crate::engine::{rendering::renderer::Renderer, types::vector::{Vector2i}};
+use crate::engine::{rendering::renderer::Renderer, types::vector::vector2i::Vector2i};
 
 pub struct Renderer2D {
     buffer: Vec<u32>,

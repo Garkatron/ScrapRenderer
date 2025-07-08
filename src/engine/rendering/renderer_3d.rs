@@ -1,6 +1,4 @@
-use std::f32::consts::PI;
-
-use crate::engine::{rendering::{mesh::Mesh, renderer::Renderer, renderer_2d::Renderer2D}, types::vector::Vector2i};
+use crate::engine::{rendering::{mesh::Mesh, renderer::Renderer, renderer_2d::Renderer2D}, types::vector::vector2i::Vector2i};
 
 pub struct Renderer3D {
     renderer_2d: Renderer2D,
