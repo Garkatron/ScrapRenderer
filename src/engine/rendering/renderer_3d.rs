@@ -1,4 +1,4 @@
-use crate::engine::{rendering::{mesh::Mesh, renderer::Renderer, renderer_2d::Renderer2D}, types::vector::vector2i::Vector2i};
+use crate::engine::{rendering::{mesh::Mesh, renderer::Renderer, renderer_2d::Renderer2D}, types::{colour::COLOUR, vector::vector2i::Vector2i}};
 
 pub struct Renderer3D {
     renderer_2d: Renderer2D,
@@ -10,6 +10,16 @@ impl Renderer3D {
             renderer_2d: Renderer2D::new(buffer, width, height, window)
         }
     }
+
+    pub fn get_shading_color(dp: f32) -> u32 {
+        match (dp*3.0) as i32 {
+            0 => COLOUR::ORANGE.to_u32(),
+            1 => COLOUR::YELLOW.to_u32(),
+            2 => COLOUR::WHITE.to_u32(),
+            _default => COLOUR::BLACK.to_u32()
+        }
+    }
+
     pub fn draw_mesh(&mut self, _mesh: Mesh) {
         
         

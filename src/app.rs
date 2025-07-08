@@ -1,16 +1,14 @@
 #![allow(dead_code, unused_variables, unused_imports, unused_import_braces)]
 
-use std::{f32::consts::PI, usize, vec};
+use std::{default, f32::consts::PI, usize, vec};
 
 use crate::engine::{
-    engine_3d::Engine3D,
-    rendering::{camera::Camera3D, mesh::Mesh, renderer::Renderer, renderer_3d::Renderer3D},
-    types::{
+    engine_3d::Engine3D, loader::obj_loader::ObjLoader, rendering::{camera::Camera3D, mesh::Mesh, renderer::Renderer, renderer_3d::Renderer3D}, types::{
         colour::COLOUR,
         object3d::Object3D,
         triangle::Triangle,
         vector::{matrix4x4::Matrix4x4, vector2i::Vector2i, vector3::Vector3},
-    },
+    }
 };
 
 pub struct MyApp {
@@ -25,221 +23,11 @@ impl MyApp {
     pub fn new(width: usize, height: usize, window: minifb::Window) -> Self {
         let mut objects = vec![];
 
-        objects.push(Mesh {
-            obj: Object3D::new(Vector3::new(0.0, 0.0, 5.0), Vector3::new(5.0, 10.0, 0.0)),
-            tris: vec![
-                // SOUTH
-                Triangle {
-                    v1: Vector3 {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 0.0,
-                    },
-                    v2: Vector3 {
-                        x: 0.0,
-                        y: 1.0,
-                        z: 0.0,
-                    },
-                    v3: Vector3 {
-                        x: 1.0,
-                        y: 1.0,
-                        z: 0.0,
-                    },
-                },
-                Triangle {
-                    v1: Vector3 {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 0.0,
-                    },
-                    v2: Vector3 {
-                        x: 1.0,
-                        y: 1.0,
-                        z: 0.0,
-                    },
-                    v3: Vector3 {
-                        x: 1.0,
-                        y: 0.0,
-                        z: 0.0,
-                    },
-                },
-                // EAST
-                Triangle {
-                    v1: Vector3 {
-                        x: 1.0,
-                        y: 0.0,
-                        z: 0.0,
-                    },
-                    v2: Vector3 {
-                        x: 1.0,
-                        y: 1.0,
-                        z: 0.0,
-                    },
-                    v3: Vector3 {
-                        x: 1.0,
-                        y: 1.0,
-                        z: 1.0,
-                    },
-                },
-                Triangle {
-                    v1: Vector3 {
-                        x: 1.0,
-                        y: 0.0,
-                        z: 0.0,
-                    },
-                    v2: Vector3 {
-                        x: 1.0,
-                        y: 1.0,
-                        z: 1.0,
-                    },
-                    v3: Vector3 {
-                        x: 1.0,
-                        y: 0.0,
-                        z: 1.0,
-                    },
-                },
-                // NORTH
-                Triangle {
-                    v1: Vector3 {
-                        x: 1.0,
-                        y: 0.0,
-                        z: 1.0,
-                    },
-                    v2: Vector3 {
-                        x: 1.0,
-                        y: 1.0,
-                        z: 1.0,
-                    },
-                    v3: Vector3 {
-                        x: 0.0,
-                        y: 1.0,
-                        z: 1.0,
-                    },
-                },
-                Triangle {
-                    v1: Vector3 {
-                        x: 1.0,
-                        y: 0.0,
-                        z: 1.0,
-                    },
-                    v2: Vector3 {
-                        x: 0.0,
-                        y: 1.0,
-                        z: 1.0,
-                    },
-                    v3: Vector3 {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 1.0,
-                    },
-                },
-                // WEST
-                Triangle {
-                    v1: Vector3 {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 1.0,
-                    },
-                    v2: Vector3 {
-                        x: 0.0,
-                        y: 1.0,
-                        z: 1.0,
-                    },
-                    v3: Vector3 {
-                        x: 0.0,
-                        y: 1.0,
-                        z: 0.0,
-                    },
-                },
-                Triangle {
-                    v1: Vector3 {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 1.0,
-                    },
-                    v2: Vector3 {
-                        x: 0.0,
-                        y: 1.0,
-                        z: 0.0,
-                    },
-                    v3: Vector3 {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 0.0,
-                    },
-                },
-                // TOP
-                Triangle {
-                    v1: Vector3 {
-                        x: 0.0,
-                        y: 1.0,
-                        z: 0.0,
-                    },
-                    v2: Vector3 {
-                        x: 0.0,
-                        y: 1.0,
-                        z: 1.0,
-                    },
-                    v3: Vector3 {
-                        x: 1.0,
-                        y: 1.0,
-                        z: 1.0,
-                    },
-                },
-                Triangle {
-                    v1: Vector3 {
-                        x: 0.0,
-                        y: 1.0,
-                        z: 0.0,
-                    },
-                    v2: Vector3 {
-                        x: 1.0,
-                        y: 1.0,
-                        z: 1.0,
-                    },
-                    v3: Vector3 {
-                        x: 1.0,
-                        y: 1.0,
-                        z: 0.0,
-                    },
-                },
-                // BOTTOM
-                Triangle {
-                    v1: Vector3 {
-                        x: 1.0,
-                        y: 0.0,
-                        z: 1.0,
-                    },
-                    v2: Vector3 {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 1.0,
-                    },
-                    v3: Vector3 {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 0.0,
-                    },
-                },
-                Triangle {
-                    v1: Vector3 {
-                        x: 1.0,
-                        y: 0.0,
-                        z: 1.0,
-                    },
-                    v2: Vector3 {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 0.0,
-                    },
-                    v3: Vector3 {
-                        x: 1.0,
-                        y: 0.0,
-                        z: 0.0,
-                    },
-                },
-            ],
-        });
+        let mut obj = ObjLoader::from_file("/home/deus/Documents/models/VideoShip.obj").unwrap();
+        obj.obj.position.z += 12.0;
+        obj.obj.rotation.y += 0.0;
+        obj.obj.rotation.x += 5.5;
+        objects.push(obj);
 
         let f_near = 0.1;
         let f_far = 1000.0;
@@ -275,6 +63,9 @@ impl MyApp {
         self.f_theta += 1.0 * delta_time;
 
         for Mesh { obj, tris } in &self.objects {
+
+            let mut triangles_to_raster: Vec<Triangle> = vec![];
+
             for tri in tris {
                 // 1. Rotar triángulo (usando matriz de rotación de objeto)
                 let v1_rot = Matrix4x4::multiply_vec(&obj.rotation_matrix(), &tri.v1);
@@ -298,6 +89,7 @@ impl MyApp {
                         v3_rot.y + obj.position.y,
                         v3_rot.z + obj.position.z,
                     ),
+                    light_color: 0
                 };
 
                 // Calcular normal
@@ -315,10 +107,17 @@ impl MyApp {
                     + normal.y * (translated.v1.y - self.camera.y)
                     + normal.z * (translated.v1.z - self.camera.z) < 0.0
                 {
+
+                    let light_direction = Vector3::new(0.0, 1.0, -1.0).normalize();
+                    let dp = light_direction.dot(&normal);
+
+                    let colour: u32 = Renderer3D::get_shading_color(dp);
+
                     let mut projected = Triangle {
                         v1: Matrix4x4::multiply_vec(&self.mat_proj, &translated.v1),
                         v2: Matrix4x4::multiply_vec(&self.mat_proj, &translated.v2),
                         v3: Matrix4x4::multiply_vec(&self.mat_proj, &translated.v3),
+                        light_color: colour
                     };
 
                     // Convertir a coordenadas de pantalla
@@ -328,22 +127,34 @@ impl MyApp {
                     }
 
 
-                    /*self.engine.renderer.fill_triangle(
-                        projected.v1.into(),
-                        projected.v2.into(),
-                        projected.v3.into(),
-                        COLOUR::BLUE.to_u32(),
-                    );*/
-                   
-
-                  
+                    
+                    triangles_to_raster.push(projected);
 
                 }
             }
-            self.engine.renderer.fill_triangle(Vector2i::new(10, 70), Vector2i::new(50, 160), Vector2i::new(70, 80), COLOUR::BLUE.to_u32());
-            self.engine.renderer.fill_triangle(Vector2i::new(180, 50), Vector2i::new(150, 1), Vector2i::new(70, 180), COLOUR::RED.to_u32());
-            self.engine.renderer.fill_triangle(Vector2i::new(180, 150), Vector2i::new(120, 160), Vector2i::new(130, 180), COLOUR::PINK.to_u32());
 
+            //  Sort back to front
+            triangles_to_raster.sort_by(|t1, t2| {
+                let z1 = (t1.v1.z + t1.v2.z + t1.v3.z) / 3.0;
+                let z2 = (t2.v1.z + t2.v2.z + t2.v3.z) / 3.0;
+                z1.partial_cmp(&z2).unwrap_or(std::cmp::Ordering::Equal).reverse() // Back to front (descending order)
+            });
+
+            for projected in triangles_to_raster {
+                self.engine.renderer.fill_triangle(
+                    projected.v1.into(),
+                    projected.v2.into(),
+                    projected.v3.into(),
+                    projected.light_color
+                );
+               
+                self.engine.renderer.draw_triangle(
+                    projected.v1.into(),
+                    projected.v2.into(),
+                    projected.v3.into(),
+                    COLOUR::BLACK.to_u32()
+                );
+            }
         }
 
         self.engine.render(delta_time);

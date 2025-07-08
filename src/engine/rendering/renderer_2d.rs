@@ -149,8 +149,8 @@ impl Renderer for Renderer2D {
         let mut a = v1;
         let mut b = v2;
         let mut c = v3;
-
-        // Step 1: Sort points by y-coordinate (top to bottom)
+    
+        // Sort points by y-coordinate (top to bottom)
         if a.y > b.y {
             std::mem::swap(&mut a, &mut b);
         }
@@ -161,55 +161,34 @@ impl Renderer for Renderer2D {
             std::mem::swap(&mut a, &mut b);
         }
         // Now: a.y <= b.y <= c.y
-
+    
+        // Check for degenerate triangle
+        if a.y == b.y && b.y == c.y {
+            return;
+        }
+    
         let total_height = c.y - a.y;
-
-        // Draw half one
-        for y in a.y..=b.y {
-            let segment_height = b.y - a.y + 1;
-            let alpha = if total_height != 0 {
-                (y - a.y) as f32 / total_height as f32
-            } else {
-                0.0
-            };
+        if total_height == 0 {
+            return; // Avoid division by zero
+        }
+    
+        for i in 0..total_height {
+            let second_half = i > b.y - a.y || b.y == a.y;
+            let segment_height = if second_half { c.y - b.y } else { b.y - a.y };
+            let alpha = i as f32 / total_height as f32;
             let beta = if segment_height != 0 {
-                (y - a.y) as f32 / segment_height as f32
+                (i - (if second_half { b.y - a.y } else { 0 })) as f32 / segment_height as f32
             } else {
                 0.0
             };
             let va = a + (c - a) * alpha;
-            let vb = a + (b - a) * beta;
-            
-            for x in va.x.min(vb.x)..=va.x.max(vb.x) {
-                self.draw_pixel(Vector2i { x, y }, color);
+            let vb = if second_half { b + (c - b) * beta } else { a + (b - a) * beta };
+            // Draw horizontal line from min(va.x, vb.x) to max(va.x, vb.x)
+            let (start_x, end_x) = if va.x > vb.x { (vb.x, va.x) } else { (va.x, vb.x) };
+            for x in start_x..=end_x {
+                self.draw_pixel(Vector2i { x, y: a.y + i }, color);
             }
         }
 
-        // Draw half two
-        for y in b.y..=c.y {
-            let segment_height = c.y - b.y + 1;
-            let alpha = if total_height != 0 {
-                (y - a.y) as f32 / total_height as f32
-            } else {
-                0.0
-            };
-            let beta = if segment_height != 0 {
-                (y - b.y) as f32 / segment_height as f32
-            } else {
-                0.0
-            };
-            let va = a + (c - a) * alpha;
-            let vb = b + (c - b) * beta;
-            
-            if a.x>b.x {std::mem::swap(&mut a,&mut b);}
-
-            for x in va.x.min(va.x)..=va.x.max(vb.x) {
-                self.draw_pixel(Vector2i { x, y }, color);
-            }
-        }
-
-        self.draw_line(a, b, COLOUR::MAGENTA.to_u32());
-        self.draw_line(b, c, COLOUR::RED.to_u32());
-        self.draw_line(c, a, COLOUR::CYAN.to_u32());
     }
 }
