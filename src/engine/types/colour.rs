@@ -1,3 +1,4 @@
+#![allow(non_camel_case_types)]
 #[repr(u32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum COLOUR {
@@ -16,6 +17,21 @@ pub enum COLOUR {
 }
 
 impl COLOUR {
+    pub fn to_u32(self) -> u32 {
+        self as u32
+    }
+}
+
+pub enum PALETTE_INKPINK {
+    WHITE = 0xffffff,
+    PINK0 = 0xfe6c90,
+    PINK1 = 0xd03791,
+    PINK2 = 0x87286a,
+    PINK3 = 0x452459,
+    PINK4 = 0x260d34,
+}
+
+impl PALETTE_INKPINK {
     pub fn to_u32(self) -> u32 {
         self as u32
     }

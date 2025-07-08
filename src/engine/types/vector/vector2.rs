@@ -13,9 +13,6 @@ impl Vector2 {
         Self { x, y }
     }
 
-    pub fn zero() -> Self {
-        Self { x: 0.0, y: 0.0 }
-    }
 }
 
 impl VectorOps<f32> for Vector2 {
@@ -62,6 +59,12 @@ impl VectorOps<f32> for Vector2 {
         } else {
             Vector2::zero()
         }
+    }
+    fn zero() -> Self {
+        Self { x: 0.0, y: 0.0 }
+    }
+    fn up() -> Self {
+        Self { x: 0.0, y: 1.0 }
     }
 }
 

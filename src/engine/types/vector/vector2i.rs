@@ -13,10 +13,6 @@ impl Vector2i {
         Self { x, y }
     }
 
-    pub fn zero() -> Self {
-        Self { x: 0, y: 0 }
-    }
-
     pub fn one() -> Self {
         Self { x: 1, y: 1 }
     }
@@ -40,6 +36,12 @@ impl VectorOps<i32> for Vector2i {
             x: self.x + other.x,
             y: self.y + other.y,
         }
+    }
+    fn zero() -> Self {
+        Self { x: 0, y: 0 }
+    }
+    fn up() -> Self {
+        Self { x: 0, y: 1 }
     }
 
     fn sub(self, other: Self) -> Self {

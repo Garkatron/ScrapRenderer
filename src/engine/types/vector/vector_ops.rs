@@ -6,4 +6,7 @@ pub trait VectorOps<T> {
     fn magnitude(self) -> f32;
     fn distance(self, other: Self) -> f32;
     fn normalize(&self) -> Self;
+    fn up() -> Self;
+    fn zero() -> Self;
+
 }

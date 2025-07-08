@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use crate::engine::types::vector::{vector3::Vector3, vector4::Vector4};
 
 #[derive(Clone, Copy, Debug)]
@@ -80,5 +82,63 @@ impl Matrix4x4 {
         let nz = v4.x * mat.m[0][2] + v4.y * mat.m[1][2] + v4.z * mat.m[2][2] + v4.w * mat.m[3][2];
         let nw = v4.x * mat.m[0][3] + v4.y * mat.m[1][3] + v4.z * mat.m[2][3] + v4.w * mat.m[3][3];
         Vector4 { x: nx, y: ny, z: nz, w: nw }.to_vector3()
+    }
+
+    pub fn project(f_near: f32, f_far: f32, f_fov: f32, height: usize, width: usize) -> Matrix4x4{
+        let f_aspect_ratio = (height / width) as f32;
+        let f_fov_rad = 1.0 / (f_fov * 0.5 / 180.0 * PI).tan();
+
+        let mut mat_proj = Matrix4x4::identity();
+        mat_proj.m[0][0] = f_aspect_ratio * f_fov_rad;
+        mat_proj.m[1][1] = f_fov_rad;
+        mat_proj.m[2][2] = f_far / (f_far - f_near);
+        mat_proj.m[3][2] = (-f_far * f_near) / (f_far - f_near);
+        mat_proj.m[2][3] = 1.0;
+        mat_proj.m[3][3] = 0.0;
+        mat_proj
+    }
+
+    pub fn point_at(pos: Vector3, target: Vector3, up: Vector3) -> Matrix4x4 {
+        // Calculate new forward direction
+        let new_forward = (target - pos).normalize();
+
+        // Calculate new Up direction
+        let a = new_forward * up.dot(&new_forward);
+        let new_up = (up - a).normalize();
+
+        // Construct Dimensioning and Translation Matrix
+        let new_right = new_up.cross(&new_forward);
+        let mut matrix = Matrix4x4::identity();
+        matrix.m[0][0] = new_right.x;	matrix.m[0][1] = new_right.y;	matrix.m[0][2] = new_right.z;	matrix.m[0][3] = 0.0;
+		matrix.m[1][0] = new_up.x;		matrix.m[1][1] = new_up.y;		matrix.m[1][2] = new_up.z;		matrix.m[1][3] = 0.0;
+		matrix.m[2][0] = new_forward.x;	matrix.m[2][1] = new_forward.y;	matrix.m[2][2] = new_forward.z;	matrix.m[2][3] = 0.0;
+		matrix.m[3][0] = pos.x;			matrix.m[3][1] = pos.y;			matrix.m[3][2] = pos.z;			matrix.m[3][3] = 1.0;
+        matrix
+
+    }
+
+    pub fn quick_inverse(&self) -> Self {
+        let mut matrix = Matrix4x4::zero();
+
+        matrix.m[0][0] = self.m[0][0];
+        matrix.m[0][1] = self.m[1][0];
+        matrix.m[0][2] = self.m[2][0];
+        matrix.m[0][3] = 0.0;
+        matrix.m[1][0] = self.m[0][1];
+        matrix.m[1][1] = self.m[1][1];
+        matrix.m[1][2] = self.m[2][1];
+        matrix.m[1][3] = 0.0;
+        matrix.m[2][0] = self.m[0][2];
+        matrix.m[2][1] = self.m[1][2];
+        matrix.m[2][2] = self.m[2][2];
+        matrix.m[2][3] = 0.0;
+
+        // Calcular la traslación inversa: -(traslación * matriz de rotación transpuesta)
+        matrix.m[3][0] = -(self.m[3][0] * matrix.m[0][0] + self.m[3][1] * matrix.m[1][0] + self.m[3][2] * matrix.m[2][0]);
+        matrix.m[3][1] = -(self.m[3][0] * matrix.m[0][1] + self.m[3][1] * matrix.m[1][1] + self.m[3][2] * matrix.m[2][1]);
+        matrix.m[3][2] = -(self.m[3][0] * matrix.m[0][2] + self.m[3][1] * matrix.m[1][2] + self.m[3][2] * matrix.m[2][2]);
+        matrix.m[3][3] = 1.0;
+
+        matrix
     }
 }

@@ -27,6 +27,15 @@ impl Renderer3D {
     }
 }
 
+/*
+ 0 => PALETTE_INKPINK::PINK4.to_u32(),
+            1 => PALETTE_INKPINK::PINK3.to_u32(),
+            2 => PALETTE_INKPINK::PINK2.to_u32(),
+            4 => PALETTE_INKPINK::PINK1.to_u32(),
+            5 => PALETTE_INKPINK::PINK0.to_u32(),
+            6 => PALETTE_INKPINK::WHITE.to_u32(),
+            */
+
 impl Renderer for Renderer3D {
     
     fn render(&mut self, delta_time: f32) {

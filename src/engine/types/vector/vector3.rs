@@ -14,9 +14,7 @@ impl Vector3 {
         Self { x, y, z }
     }
 
-    pub fn zero() -> Self {
-        Self { x: 0.0, y: 0.0, z: 0.0 }
-    }
+    
 
     pub fn dot(&self, other: &Vector3) -> f32 {
         self.x * other.x + self.y * other.y + self.z * other.z
@@ -87,6 +85,12 @@ impl VectorOps<f32> for Vector3 {
 
     fn normalize(&self) -> Vector3 {
         self.normalize()
+    }
+    fn zero() -> Self {
+        Self { x: 0.0, y: 0.0, z: 0.0 }
+    }
+    fn up() -> Self {
+        Self { x: 0.0, y: 1.0, z: 0.0 }
     }
 }
 
