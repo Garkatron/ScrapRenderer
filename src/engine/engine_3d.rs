@@ -1,8 +1,8 @@
-use minifb::Key;
-
-use crate::engine::rendering::{renderer::Renderer, renderer_3d::Renderer3D};
+use crate::engine::{control::keyboard::KeyboardController, rendering::{renderer::Renderer, renderer_3d::Renderer3D}};
 pub struct Engine3D {
-    pub renderer: Renderer3D
+    pub running: bool,
+    pub renderer: Renderer3D,
+    pub kbcontroller: KeyboardController,
 }
 
 impl Engine3D {

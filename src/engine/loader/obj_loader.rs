@@ -1,6 +1,6 @@
 use std::{fs::File, io::Read};
 
-use crate::engine::{rendering::mesh::Mesh, types::{object3d::Object3D, triangle::Triangle, vector::{vector3::Vector3, vector4::Vector4}}};
+use crate::engine::{rendering::mesh::Mesh, types::{object3d::Object3D, triangle::Triangle, vector::{vector3::Vector3}}};
 
 pub struct ObjLoader;
 

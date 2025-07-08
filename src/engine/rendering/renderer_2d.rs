@@ -1,18 +1,22 @@
 #![allow(unused_variables)]
+use std::{cell::RefCell, rc::Rc};
+
+use minifb::Window;
+
 use crate::engine::{
     rendering::renderer::Renderer,
-    types::{colour::COLOUR, vector::vector2i::Vector2i},
+    types::{vector::vector2i::Vector2i},
 };
 
 pub struct Renderer2D {
     buffer: Vec<u32>,
     width: usize,
     height: usize,
-    window: minifb::Window,
+    window: Rc<RefCell<Window>>,
 }
 
 impl Renderer2D {
-    pub fn new(buffer: Vec<u32>, width: usize, height: usize, window: minifb::Window) -> Self {
+    pub fn new(buffer: Vec<u32>, width: usize, height: usize, window: Rc<RefCell<Window>>) -> Self {
         Self {
             buffer,
             width,
@@ -26,6 +30,7 @@ impl Renderer for Renderer2D {
     fn render(&mut self, _delta_time: f32) {
         if let Err(e) = self
             .window
+            .borrow_mut()
             .update_with_buffer(&self.buffer, self.width, self.height)
         {
             eprintln!("Error updating window buffer: {:?}", e);
@@ -120,10 +125,7 @@ impl Renderer for Renderer2D {
     fn width(&self) -> usize {
         self.width
     }
-    fn window(&self) -> &minifb::Window {
-        &self.window
-    }
-
+ 
     fn draw_triangle(&mut self, a: Vector2i, b: Vector2i, c: Vector2i, color: u32) {
         self.draw_line(a, b, color);
         self.draw_line(b, c, color);
@@ -192,3 +194,5 @@ impl Renderer for Renderer2D {
 
     }
 }
+
+

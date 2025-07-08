@@ -1,8 +1,8 @@
 use std::time::Instant;
 
-use minifb::{Key, Window, WindowOptions};
+use minifb::{Window, WindowOptions};
 
-use crate::{app::MyApp, engine::{rendering::renderer::Renderer, types::colour::COLOUR}};
+use crate::{app::MyApp, engine::rendering::palettes::PALETTE_DEFAULT};
 
 
 const WIDTH: usize = 500;
@@ -18,7 +18,7 @@ fn main() {
         for x in 0..WIDTH {
             let idx = y * WIDTH + x;
   
-            buffer[idx] = COLOUR::BLACK.to_u32(); 
+            buffer[idx] = PALETTE_DEFAULT::BLACK.to_u32(); 
         }
     }
 
@@ -49,8 +49,7 @@ fn main() {
 
     while WIDTH > 0
         && HEIGHT > 0
-        && !app.engine.renderer.window().is_key_down(Key::Escape)
-        && app.engine.renderer.window().is_open()
+        && app.engine.running
     {
         let now = Instant::now();
         let delta = now.duration_since(last_frame);
