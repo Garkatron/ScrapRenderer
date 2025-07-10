@@ -1,6 +1,9 @@
 use std::{fs::File, io::Read};
 
-use crate::engine::{rendering::mesh::Mesh, types::{object3d::Object3D, triangle::Triangle, vector::{vector3::Vector3}}};
+use nalgebra::{Vector4};
+
+use crate::engine::{rendering::mesh::Mesh, types::{object3d::Object3D, triangle::Triangle}};
+
 
 pub struct ObjLoader;
 
@@ -13,7 +16,7 @@ impl ObjLoader {
         file.read_to_string(&mut contents)?;
 
         // Cache de vértices
-        let mut verts: Vec<Vector3> = vec![];
+        let mut verts: Vec<Vector4<f32>> = vec![];
 
         for line in contents.lines() {
             let data: Vec<&str> = line.split_whitespace().collect();
@@ -21,10 +24,11 @@ impl ObjLoader {
             match line.chars().nth(0) {
                 Some('v') => {
                     if data.len() >= 4 {
-                        verts.push(Vector3::new(
+                        verts.push(Vector4::new(
                             data[1].parse().unwrap_or(0.0),
                             data[2].parse().unwrap_or(0.0),
                             data[3].parse().unwrap_or(0.0),
+                            0.0
                         ));
                     }
                 }

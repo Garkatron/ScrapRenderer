@@ -7,19 +7,20 @@ use std::{
 };
 
 use minifb::Key;
+use nalgebra::{Matrix4, Rotation3, Vector2, Vector3, Vector4};
 
 use crate::engine::{
     control::keyboard::KeyboardController,
     engine_3d::Engine3D,
     loader::obj_loader::ObjLoader,
-    rendering::{camera::Camera3D, mesh::Mesh, palettes::{PaletteDefault, PalettePink, PALETTE_DEFAULT, PALETTE_PINK}, renderer::Renderer, renderer_3d::Renderer3D},
-    types::{
-        object3d::Object3D,
-        triangle::Triangle,
-        vector::{
-            matrix4x4::{self, Matrix4x4}, vector2i::Vector2i, vector3::Vector3, vector_ops::VectorOps
-        },
+    rendering::{
+        camera::Camera3D,
+        mesh::Mesh,
+        palettes::{PALETTE_DEFAULT, PALETTE_PINK, PaletteDefault, PalettePink},
+        renderer::Renderer,
+        renderer_3d::Renderer3D,
     },
+    types::{object3d::Object3D, triangle::Triangle},
 };
 
 pub struct MyApp {
@@ -27,10 +28,10 @@ pub struct MyApp {
     pub engine: Engine3D,
     //pub kbcontroller: KeyboardController<'a>,
     pub objects: Vec<Mesh>,
-    pub camera: Vector3,
-    pub look_dir: Vector3,
+    pub camera: Vector3<f32>,
+    pub look_dir: Vector3<f32>,
     pub f_theta: f32,
-    pub mat_proj: Matrix4x4,
+    pub mat_proj: Matrix4<f32>,
     pub f_yaw: f32,
 }
 
@@ -46,7 +47,7 @@ impl MyApp {
         obj.obj.rotation.z += 0.0;
         objects.push(obj);
 
-        let mat_proj = Matrix4x4::project(0.1, 1000.0, 90.0, height, width);
+        let mat_proj = Renderer3D::make_projection(90.0, (height / width) as f32, 0.1, 1000.0);
 
         Self {
             window: w.clone(),
@@ -58,7 +59,7 @@ impl MyApp {
             //kbcontroller: KeyboardController::new(&window)
             objects,
             camera: Vector3::new(0.0, 0.0, 0.0),
-            look_dir: Vector3::zero(),
+            look_dir: Vector3::zeros(),
             //camera: Camera3D::new(Vector3::new(0.0, 0.1, 5.0), width, height),
             f_theta: 0.0,
             mat_proj,
@@ -85,33 +86,32 @@ impl MyApp {
                 let transform_matrix = obj.transform_matrix();
 
                 // 3.
-                let world_matrix = Matrix4x4::multiply_matrix(&rotation_matrix, &transform_matrix);
+                let world_matrix = rotation_matrix * transform_matrix;
 
-                let v_up = Vector3::up();
-                let mut v_target = Vector3 {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 1.0,
-                };
+                let v_up = Vector3::new(0.0, 1.0, 0.0);
+                let mut v_target = Vector3::new(0.0, 0.0, 0.1);
 
-                let mat_camera_rot = Matrix4x4::rotation_y(self.f_yaw);
-                self.look_dir = Matrix4x4::multiply_vec(&mat_camera_rot, &v_target);
+                let mat_camera_rot =
+                    Rotation3::from_axis_angle(&nalgebra::Vector3::y_axis(), self.f_yaw)
+                        .to_homogeneous();
+                let v_target_4 = Vector4::new(v_target.x, v_target.y, v_target.z, 0.0);
+                self.look_dir = (mat_camera_rot * v_target_4).xyz();
 
                 v_target = self.camera + self.look_dir;
 
-                let mat_camera = Matrix4x4::point_at(self.camera, v_target, v_up);
-                let mat_view = Matrix4x4::quick_inverse(&mat_camera);
+                let mat_camera = Renderer3D::point_at(&self.camera, &v_target, &v_up);
+                let mat_view = Renderer3D::quick_inverse(&mat_camera);
 
                 let tri_transformed = Triangle {
-                    v1: Matrix4x4::multiply_vec(&world_matrix, &tri.v1),
-                    v2: Matrix4x4::multiply_vec(&world_matrix, &tri.v2),
-                    v3: Matrix4x4::multiply_vec(&world_matrix, &tri.v3),
+                    v1: world_matrix * tri.v1,
+                    v2: world_matrix * tri.v2,
+                    v3: world_matrix * tri.v3,
                     light_color: 0,
                 };
 
                 // Calc Normal
-                let l1 = tri_transformed.v2 - tri_transformed.v1;
-                let l2 = tri_transformed.v3 - tri_transformed.v1;
+                let l1 = tri_transformed.v2.xyz() - tri_transformed.v1.xyz();
+                let l2 = tri_transformed.v3.xyz() - tri_transformed.v1.xyz();
                 let normal = l1.cross(&l2).normalize(); // You normally need to normalize a normal
 
                 // Avoid divide by 0 and triangles before camera.
@@ -123,43 +123,35 @@ impl MyApp {
                 }
 
                 // Get ray from triangle to camera
-                let v_camera_ray = tri_transformed.v1 - self.camera;
+                let v_camera_ray = tri_transformed.v1.xyz() - self.camera;
 
                 // If ray is aligned with normal, make it visible.
-                if normal.dot(v_camera_ray) < 0.0 {
+                if normal.dot(&v_camera_ray) < 0.0 {
                     let light_direction = Vector3::new(0.0, 1.0, -1.0).normalize();
-                    let dp = light_direction.dot(normal); // How "aligned" are light direction and triangle sureface normal?
+                    let dp = light_direction.dot(&normal); // How "aligned" are light direction and triangle sureface normal?
 
                     let colour: u32 = Renderer3D::get_shading_color(dp, &PalettePink);
 
                     let viewed_triangle = Triangle {
-                        v1: Matrix4x4::multiply_vec(&mat_view, &tri_transformed.v1),
-                        v2: Matrix4x4::multiply_vec(&mat_view, &tri_transformed.v2),
-                        v3: Matrix4x4::multiply_vec(&mat_view, &tri_transformed.v3),
+                        v1: mat_view * tri_transformed.v1,
+                        v2: mat_view * tri_transformed.v2,
+                        v3: mat_view * tri_transformed.v3,
                         light_color: colour,
                     };
 
                     // Clip viewed triangle againts near plane, this could form two aditional triangles.
 
                     let clipped = Renderer3D::triangle_clip_against_plane(
-                        Vector3 {
-                            x: 0.0,
-                            y: 0.0,
-                            z: 0.2,
-                        },
-                        Vector3 {
-                            x: 0.0,
-                            y: 0.0,
-                            z: 1.0,
-                        },
+                        Vector3::new(0.0, 0.0, 0.2),
+                        Vector3::new(0.0, 0.0, 1.0),
                         &viewed_triangle,
                     );
 
                     for tc in clipped {
                         let mut projected = Triangle {
-                            v1: Matrix4x4::multiply_vec(&self.mat_proj, &tc.v1),
-                            v2: Matrix4x4::multiply_vec(&self.mat_proj, &tc.v2),
-                            v3: Matrix4x4::multiply_vec(&self.mat_proj, &tc.v3),
+                            v1: self.mat_proj * &tc.v1,
+                            v2: self.mat_proj * &tc.v2,
+                            v3: self.mat_proj * &tc.v3,
                             light_color: tc.light_color,
                         };
 
@@ -186,55 +178,48 @@ impl MyApp {
             // Loop through all transformed, viewed, projected, and sorted triangles
             for tri_to_raster in triangles_to_raster {
                 let mut tri_queue: Vec<Triangle> = vec![tri_to_raster];
-            
+
                 for edge in 0..4 {
                     let mut new_triangles: Vec<Triangle> = vec![];
-            
+
                     for test in tri_queue.drain(..) {
                         let clipped = match edge {
                             0 => Renderer3D::triangle_clip_against_plane(
-                                Vector3 { x: 0.0, y: 0.0, z: 0.0 },
-                                Vector3 { x: 0.0, y: 1.0, z: 0.0 },
+                                Vector3::new(0.0, 0.0, 0.0),
+                                Vector3::new(0.0, 1.0, 0.0),
                                 &test,
                             ),
                             1 => Renderer3D::triangle_clip_against_plane(
-                                Vector3 {
-                                    x: 0.0,
-                                    y: (self.engine.renderer.height() as f32) - 1.0,
-                                    z: 0.0,
-                                },
-                                Vector3 { x: 0.0, y: -1.0, z: 0.0 },
+                                Vector3::new(
+                                    0.0,
+                                    (self.engine.renderer.height() as f32) - 1.0,
+                                    0.0,
+                                ),
+                                Vector3::new(0.0, -1.0, 0.0),
                                 &test,
                             ),
                             2 => Renderer3D::triangle_clip_against_plane(
-                                Vector3 { x: 0.0, y: 0.0, z: 0.0 },
-                                Vector3 { x: 1.0, y: 0.0, z: 0.0 },
+                                Vector3::new(0.0, 0.0, 0.0),
+                                Vector3::new(1.0, 0.0, 0.0),
                                 &test,
                             ),
                             3 => Renderer3D::triangle_clip_against_plane(
-                                Vector3 {
-                                    x: (self.engine.renderer.width() as f32) - 1.0,
-                                    y: 0.0,
-                                    z: 0.0,
-                                },
-                                Vector3 { x: -1.0, y: 0.0, z: 0.0 },
+                                Vector3::new((self.engine.renderer.width() as f32) - 1.0, 0.0, 0.0),
+                                Vector3::new(-1.0, 0.0, 0.0),
                                 &test,
                             ),
                             _ => vec![],
                         };
                         new_triangles.extend(clipped);
                     }
-            
+
                     tri_queue = new_triangles;
                 }
                 for t in tri_queue {
-                    self.engine.renderer.fill_triangle(
-                        t.v1.into(),
-                        t.v2.into(),
-                        t.v3.into(),
-                        t.light_color,
-                    );
-    /* 
+                    self.engine
+                        .renderer
+                        .fill_triangle(Self::tov2i(t.v1), Self::tov2i(t.v2), Self::tov2i(t.v3), t.light_color);
+                    /*
                     self.engine.renderer.draw_triangle(
                         t.v1.into(),
                         t.v2.into(),
@@ -243,10 +228,13 @@ impl MyApp {
                     );*/
                 }
             }
-             
         }
 
         self.engine.render(delta_time);
+    }
+
+    pub fn tov2i(v: Vector4<f32>) -> Vector2<i32> {
+        Vector2::new(v.x as i32, v.y as i32)
     }
 
     pub fn update(&mut self, delta_time: f32) {
