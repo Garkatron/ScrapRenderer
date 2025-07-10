@@ -1,74 +1,92 @@
-use std::ops::{Add, Mul, Sub};
+use num_traits::{Float, NumCast, One, Zero};
+use std::ops::{Add, Div, Mul, Sub};
 
-use crate::engine::types::vector::{vector2i::Vector2i, vector_ops::VectorOps};
+use crate::engine::types::vector::vector2i::Vector2i;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Vector2 {
-    pub x: f32,
-    pub y: f32,
+pub struct Vector2<T> {
+    pub x: T,
+    pub y: T,
 }
 
-impl Vector2 {
-    pub fn new(x: f32, y: f32) -> Self {
+impl<T> Vector2<T> {
+    pub fn new(x: T, y: T) -> Self {
         Self { x, y }
     }
-
 }
 
-impl VectorOps<f32> for Vector2 {
-    fn add(self, other: Self) -> Self {
-        Self {
-            x: self.x + other.x,
-            y: self.y + other.y,
+impl<T> Vector2<T>
+where
+    T: Float,
+{
+    pub fn magnitude(self) -> T {
+        (self.x * self.x + self.y * self.y).sqrt()
+    }
+
+    pub fn distance(self, other: Self) -> T {
+        (self - other).magnitude()
+    }
+
+    pub fn normalize(self) -> Self {
+        let len = self.magnitude();
+        if len > T::zero() {
+            Self {
+                x: self.x / len,
+                y: self.y / len,
+            }
+        } else {
+            Self::zero()
         }
     }
 
-    fn sub(self, other: Self) -> Self {
-        Self {
-            x: self.x - other.x,
-            y: self.y - other.y,
-        }
+    pub fn dot(self, other: Self) -> T {
+        self.x * other.x + self.y * other.y
     }
 
-    fn scale(self, factor: f32) -> Self {
+    pub fn scale(self, factor: T) -> Self {
         Self {
             x: self.x * factor,
             y: self.y * factor,
         }
     }
 
-    fn dot(self, other: Self) -> f32 {
-        self.x * other.x + self.y * other.y
-    }
-
-    fn magnitude(self) -> f32 {
-        (self.x * self.x + self.y * self.y).sqrt()
-    }
-
-    fn distance(self, other: Self) -> f32 {
-        (self - other).magnitude()
-    }
-
-    fn normalize(&self) -> Self {
-        let len = self.magnitude();
-        if len > 0.0 {
-            Vector2 {
-                x: self.x / len,
-                y: self.y / len,
-            }
-        } else {
-            Vector2::zero()
+    pub fn zero() -> Self {
+        Self {
+            x: T::zero(),
+            y: T::zero(),
         }
     }
-    fn zero() -> Self {
-        Self { x: 0.0, y: 0.0 }
+
+    pub fn up() -> Self {
+        Self {
+            x: T::zero(),
+            y: T::one(),
+        }
     }
-    fn up() -> Self {
-        Self { x: 0.0, y: 1.0 }
+   
+}
+
+impl<T> Vector2<T>
+where
+    T: Copy + NumCast,
+{
+    pub fn cast<G>(&self) -> Option<Vector2<G>>
+    where
+        G: NumCast,
+    {
+        Some(Vector2 {
+            x: NumCast::from(self.x)?,
+            y: NumCast::from(self.y)?,
+        })
     }
 }
 
-impl Add for Vector2 {
+// Operator overloading
+
+impl<T> Add for Vector2<T>
+where
+    T: Add<Output = T>,
+{
     type Output = Self;
 
     fn add(self, other: Self) -> Self::Output {
@@ -79,7 +97,25 @@ impl Add for Vector2 {
     }
 }
 
-impl Sub for Vector2 {
+
+impl<T> Mul for Vector2<T>
+where
+    T: Mul<Output = T>,
+{
+    type Output = Self;
+
+    fn mul(self, other: Self) -> Self::Output {
+        Self {
+            x: self.x * other.x,
+            y: self.y * other.y,
+        }
+    }
+}
+
+impl<T> Sub for Vector2<T>
+where
+    T: Sub<Output = T>,
+{
     type Output = Self;
 
     fn sub(self, other: Self) -> Self::Output {
@@ -90,10 +126,13 @@ impl Sub for Vector2 {
     }
 }
 
-impl Mul<f32> for Vector2 {
+impl<T> Mul<T> for Vector2<T>
+where
+    T: Mul<Output = T> + Copy,
+{
     type Output = Self;
 
-    fn mul(self, factor: f32) -> Self::Output {
+    fn mul(self, factor: T) -> Self::Output {
         Self {
             x: self.x * factor,
             y: self.y * factor,
@@ -101,11 +140,26 @@ impl Mul<f32> for Vector2 {
     }
 }
 
-impl From<Vector2i> for Vector2 {
+impl<T> Add<T> for Vector2<T>
+where
+    T: Add<Output = T> + Copy,
+{
+    type Output = Self;
+
+    fn add(self, factor: T) -> Self::Output {
+        Self {
+            x: self.x + factor,
+            y: self.y + factor,
+        }
+    }
+}
+
+// Conversion from Vector2i
+impl From<Vector2i> for Vector2<f32> {
     fn from(value: Vector2i) -> Self {
         Self {
             x: value.x as f32,
-            y: value.y as f32
+            y: value.y as f32,
         }
     }
 }

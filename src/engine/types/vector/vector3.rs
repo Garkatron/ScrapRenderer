@@ -1,6 +1,6 @@
 use std::ops::{Add, Mul, Sub};
 
-use crate::engine::types::vector::{vector_ops::VectorOps, vector2i::Vector2i, vector4::Vector4};
+use crate::engine::types::vector::{vector2::Vector2, vector2i::Vector2i, vector4::Vector4, vector_ops::VectorOps};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vector3 {
@@ -105,9 +105,9 @@ impl VectorOps<f32> for Vector3 {
     }
 }
 
-impl Into<Vector2i> for Vector3 {
-    fn into(self) -> Vector2i {
-        Vector2i {
+impl Into<Vector2<i32>> for Vector3 {
+    fn into(self) -> Vector2<i32> {
+        Vector2 {
             x: self.x as i32,
             y: self.y as i32,
         }

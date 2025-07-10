@@ -3,10 +3,10 @@ use std::{cell::RefCell, rc::Rc};
 use minifb::Window;
 
 use crate::engine::{
-    rendering::{mesh::Mesh, palette::Palette, palettes::PALETTE_DEFAULT, renderer::Renderer, renderer_2d::Renderer2D},
+    rendering::{mesh::Mesh, palette::Palette, renderer::Renderer, renderer_2d::Renderer2D},
     types::{
         triangle::Triangle,
-        vector::{vector2i::Vector2i, vector3::Vector3},
+        vector::{vector2::Vector2, vector3::Vector3},
     },
 };
 
@@ -165,16 +165,16 @@ impl Renderer for Renderer3D {
         self.renderer_2d.clear(color);
     }
 
-    fn draw_pixel(&mut self, pos: Vector2i, color: u32) {
+    fn draw_pixel(&mut self, pos: Vector2<i32>, color: u32) {
         self.renderer_2d.draw_pixel(pos, color);
     }
 
-    fn draw_square(&mut self, a: Vector2i, b: Vector2i, color: u32, filled: bool, fill_color: u32) {
+    fn draw_square(&mut self, a: Vector2<i32>, b: Vector2<i32>, color: u32, filled: bool, fill_color: u32) {
         self.renderer_2d
             .draw_square(a, b, color, filled, fill_color);
     }
 
-    fn draw_line(&mut self, a: Vector2i, b: Vector2i, color: u32) {
+    fn draw_line(&mut self, a: Vector2<i32>, b: Vector2<i32>, color: u32) {
         self.renderer_2d.draw_line(a, b, color);
     }
 
@@ -186,14 +186,14 @@ impl Renderer for Renderer3D {
         self.renderer_2d.height()
     }
 
-    fn draw_triangle(&mut self, a: Vector2i, b: Vector2i, c: Vector2i, color: u32) {
+    fn draw_triangle(&mut self, a: Vector2<i32>, b: Vector2<i32>, c: Vector2<i32>, color: u32) {
         self.renderer_2d.draw_triangle(a, b, c, color)
     }
 
-    fn fill_triangle(&mut self, a: Vector2i, b: Vector2i, c: Vector2i, color: u32) {
+    fn fill_triangle(&mut self, a: Vector2<i32>, b: Vector2<i32>, c: Vector2<i32>, color: u32) {
         self.renderer_2d.fill_triangle(a, b, c, color)
     }
-    fn get_x_at_y(&self, p1: Vector2i, p2: Vector2i, y: i32) -> i32 {
+    fn get_x_at_y(&self, p1: Vector2<i32>, p2: Vector2<i32>, y: i32) -> i32 {
         self.renderer_2d.get_x_at_y(p1, p2, y)
     }
 }

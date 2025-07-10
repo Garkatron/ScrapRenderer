@@ -4,8 +4,7 @@ use std::{cell::RefCell, rc::Rc};
 use minifb::Window;
 
 use crate::engine::{
-    rendering::renderer::Renderer,
-    types::{vector::vector2i::Vector2i},
+    rendering::renderer::Renderer, types::vector::vector2::Vector2,
 };
 
 pub struct Renderer2D {
@@ -39,7 +38,7 @@ impl Renderer for Renderer2D {
     fn clear(&mut self, color: u32) {
         self.buffer.fill(color);
     }
-    fn draw_pixel(&mut self, pos: Vector2i, color: u32) {
+    fn draw_pixel(&mut self, pos: Vector2<i32>, color: u32) {
         if pos.x >= 0 && pos.y >= 0 && pos.x < self.width as i32 && pos.y < self.height as i32 {
             let index = pos.y as usize * self.width + pos.x as usize;
             if index < self.buffer.len() {
@@ -48,7 +47,7 @@ impl Renderer for Renderer2D {
         }
     }
 
-    fn draw_square(&mut self, a: Vector2i, b: Vector2i, color: u32, filled: bool, fill_color: u32) {
+    fn draw_square(&mut self, a: Vector2<i32>, b: Vector2<i32>, color: u32, filled: bool, fill_color: u32) {
         let min_x = a.x.min(b.x);
         let max_x = a.x.max(b.x);
         let min_y = a.y.min(b.y);
@@ -56,7 +55,7 @@ impl Renderer for Renderer2D {
 
         for y in min_y..=max_y {
             for x in min_x..=max_x {
-                let pos = Vector2i { x, y };
+                let pos = Vector2 { x, y };
                 if filled {
                     self.draw_pixel(pos, fill_color);
                 } else {
@@ -69,14 +68,14 @@ impl Renderer for Renderer2D {
     }
 
     // ? https://es.wikipedia.org/wiki/Algoritmo_de_Bresenham
-    fn draw_line(&mut self, a: Vector2i, b: Vector2i, color: u32) {
+    fn draw_line(&mut self, a: Vector2<i32>, b: Vector2<i32>, color: u32) {
         let mut x0 = a.x;
         let mut y0 = a.y;
         let mut x1 = b.x;
         let mut y1 = b.y;
 
         if x0 == x1 && y0 == y1 {
-            self.draw_pixel(Vector2i::new(x0, y0), color);
+            self.draw_pixel(Vector2::new(x0, y0), color);
             return; // Only draws a pixel
         }
 
@@ -105,9 +104,9 @@ impl Renderer for Renderer2D {
         let mut y = y0;
         for x in x0..=x1 {
             if steep {
-                self.draw_pixel(Vector2i::new(y, x), color);
+                self.draw_pixel(Vector2::new(y, x), color);
             } else {
-                self.draw_pixel(Vector2i::new(x, y), color);
+                self.draw_pixel(Vector2::new(x, y), color);
             }
             // if error i'ts greater than dx, we need step over y
             error2 += derror2;
@@ -126,13 +125,13 @@ impl Renderer for Renderer2D {
         self.width
     }
  
-    fn draw_triangle(&mut self, a: Vector2i, b: Vector2i, c: Vector2i, color: u32) {
+    fn draw_triangle(&mut self, a: Vector2<i32>, b: Vector2<i32>, c: Vector2<i32>, color: u32) {
         self.draw_line(a, b, color);
         self.draw_line(b, c, color);
         self.draw_line(c, a, color);
     }
 
-    fn get_x_at_y(&self, p1: Vector2i, p2: Vector2i, y: i32) -> i32 {
+    fn get_x_at_y(&self, p1: Vector2<i32>, p2: Vector2<i32>, y: i32) -> i32 {
         if p1.y == p2.y {
             return p1.x; // Horizontal line, return x1
         }
@@ -146,11 +145,11 @@ impl Renderer for Renderer2D {
     }
 
     // ? https://github.com/ssloy/tinyrenderer/wiki/Lesson-2:-Triangle-rasterization-and-back-face-culling
-    fn fill_triangle(&mut self, v1: Vector2i, v2: Vector2i, v3: Vector2i, color: u32) {
+    fn fill_triangle(&mut self, v1: Vector2<i32>, v2: Vector2<i32>, v3: Vector2<i32>, color: u32) {
         // Make mutable copies to sort
-        let mut a = v1;
-        let mut b = v2;
-        let mut c = v3;
+        let mut a = v1.cast::<f32>().unwrap();
+        let mut b = v2.cast::<f32>().unwrap();
+        let mut c = v3.cast::<f32>().unwrap();
     
         // Sort points by y-coordinate (top to bottom)
         if a.y > b.y {
@@ -170,16 +169,16 @@ impl Renderer for Renderer2D {
         }
     
         let total_height = c.y - a.y;
-        if total_height == 0 {
+        if total_height == 0.0 {
             return; // Avoid division by zero
         }
     
-        for i in 0..total_height {
-            let second_half = i > b.y - a.y || b.y == a.y;
+        for i in 0..total_height as i32 {
+            let second_half = i as f32 > b.y - a.y || b.y == a.y;
             let segment_height = if second_half { c.y - b.y } else { b.y - a.y };
             let alpha = i as f32 / total_height as f32;
-            let beta = if segment_height != 0 {
-                (i - (if second_half { b.y - a.y } else { 0 })) as f32 / segment_height as f32
+            let beta = if segment_height != 0.0 {
+                (i as f32 - (if second_half { b.y - a.y } else { 0.0 })) as f32 / segment_height as f32
             } else {
                 0.0
             };
@@ -187,8 +186,8 @@ impl Renderer for Renderer2D {
             let vb = if second_half { b + (c - b) * beta } else { a + (b - a) * beta };
             // Draw horizontal line from min(va.x, vb.x) to max(va.x, vb.x)
             let (start_x, end_x) = if va.x > vb.x { (vb.x, va.x) } else { (va.x, vb.x) };
-            for x in start_x..=end_x {
-                self.draw_pixel(Vector2i { x, y: a.y + i }, color);
+            for x in start_x as i32..=end_x as i32 {
+                self.draw_pixel(Vector2 { x, y: (a.y + i as f32) as i32}, color);
             }
         }
 
