@@ -1,13 +1,14 @@
-use crate::engine::types::vector::{matrix4x4::Matrix4x4, vector3::Vector3, vector_ops::VectorOps};
+use crate::engine::types::vector::{matrix4x4::Matrix4x4, vector3::Vector3};
+
 
 pub struct Object3D {
-    pub position: Vector3,
-    pub rotation: Vector3, // pitch (X), yaw (Y), roll (Z)
+    pub position: Vector3<f32>,
+    pub rotation: Vector3<f32>, // pitch (X), yaw (Y), roll (Z)
 }
 
 impl Object3D {
 
-    pub fn new(position: Vector3, rotation: Vector3) -> Self {
+    pub fn new(position: Vector3<f32>, rotation: Vector3<f32>) -> Self {
         Self { position, rotation }
     }
 

@@ -1,7 +1,6 @@
 use num_traits::{Float, NumCast, One, Zero};
 use std::ops::{Add, Div, Mul, Sub};
 
-use crate::engine::types::vector::vector2i::Vector2i;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Vector2<T> {
@@ -154,12 +153,32 @@ where
     }
 }
 
-// Conversion from Vector2i
-impl From<Vector2i> for Vector2<f32> {
-    fn from(value: Vector2i) -> Self {
+
+impl<T> Div<T> for Vector2<T>
+where
+    T: Div<Output = T> + Copy,
+{
+    type Output = Self;
+
+    fn div(self, rhs: T) -> Self::Output {
         Self {
-            x: value.x as f32,
-            y: value.y as f32,
+            x: self.x / rhs,
+            y: self.y / rhs,
+        }
+    }
+}
+
+
+impl<T> Div for Vector2<T>
+where
+    T: Div<Output = T>,
+{
+    type Output = Self;
+
+    fn div(self, other: Self) -> Self::Output {
+        Self {
+            x: self.x / other.x,
+            y: self.y / other.y,
         }
     }
 }

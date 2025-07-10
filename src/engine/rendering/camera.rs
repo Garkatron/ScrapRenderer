@@ -6,7 +6,7 @@ pub struct Camera3D {
 }
 
 impl Camera3D {
-    pub fn new(position: Vector3, width: usize, height: usize) -> Self {
+    pub fn new(position: Vector3<f32>, width: usize, height: usize) -> Self {
        Self {
         
        }

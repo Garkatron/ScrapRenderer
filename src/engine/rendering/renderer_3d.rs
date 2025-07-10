@@ -26,20 +26,20 @@ impl Renderer3D {
 
     // https://github.com/OneLoneCoder/Javidx9/blob/master/ConsoleGameEngine/BiggerProjects/Engine3D/OneLoneCoder_olcEngine3D_Part3.cpp
     pub fn intersect_plane(
-        plane_p: Vector3,    // A known point on the plane
-        plane_n: Vector3,    // The normal vector of the plane
-        line_start: Vector3, // Start point of the line
-        line_end: Vector3,   // End point of the line
-    ) -> Vector3 {
+        plane_p: Vector3<f32>,    // A known point on the plane
+        plane_n: Vector3<f32>,    // The normal vector of the plane
+        line_start: Vector3<f32>, // Start point of the line
+        line_end: Vector3<f32>,   // End point of the line
+    ) -> Vector3<f32> {
         // Normalize the plane's normal vector
         let plane_n = plane_n.normalize();
 
         // Calculate the plane's constant term: D = -N · P
-        let plane_d = -plane_n.dot(&plane_p);
+        let plane_d = -plane_n.dot(plane_p);
 
         // Get the dot product of the line start and end with the plane normal
-        let ad = line_start.dot(&plane_n);
-        let bd = line_end.dot(&plane_n);
+        let ad = line_start.dot(plane_n);
+        let bd = line_end.dot(plane_n);
 
         // Compute the parameter t to find the intersection point along the line
         let t = (-plane_d - ad) / (bd - ad);
@@ -58,18 +58,18 @@ impl Renderer3D {
     /// Intersects a triangle with a plane, possibly clipping it into 0, 1 or 2 triangles.
     /// Returns a vector of resulting triangles.
     pub fn triangle_clip_against_plane(
-        plane_p: Vector3,
-        plane_n: Vector3,
+        plane_p: Vector3<f32>,
+        plane_n: Vector3<f32>,
         in_tri: &Triangle,
     ) -> Vec<Triangle> {
         let plane_n = plane_n.normalize();
 
         // Signed distance from point to plane
-        let dist = |p: &Vector3| -> f32 { plane_n.dot(&p) - plane_n.dot(&plane_p) };
+        let dist = |p: &Vector3<f32>| -> f32 { plane_n.dot(*p) - plane_n.dot(plane_p) };
 
         // Classify each vertex as inside or outside
-        let mut inside_points: Vec<Vector3> = Vec::new();
-        let mut outside_points: Vec<Vector3> = Vec::new();
+        let mut inside_points: Vec<Vector3<f32>> = Vec::new();
+        let mut outside_points: Vec<Vector3<f32>> = Vec::new();
 
         // Get sgined distance of each point in the triangle to plane
         let d0 = dist(&in_tri.v1);

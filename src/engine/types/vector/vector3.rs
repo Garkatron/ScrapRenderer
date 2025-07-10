@@ -1,175 +1,228 @@
-use std::ops::{Add, Mul, Sub};
+use num_traits::{Float, NumCast, One, Zero};
+use std::ops::{Add, Div, Mul, Sub};
 
-use crate::engine::types::vector::{vector2::Vector2, vector2i::Vector2i, vector4::Vector4, vector_ops::VectorOps};
+use crate::engine::types::vector::vector2::Vector2;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Vector3 {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
+
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct Vector3<T> {
+    pub x: T,
+    pub y: T,
+    pub z: T,
 }
 
-impl Vector3 {
-    pub fn new(x: f32, y: f32, z: f32) -> Self {
+impl<T> Vector3<T> {
+    pub fn new(x: T, y: T, z: T) -> Self {
         Self { x, y, z }
     }
     
-    pub fn dot(&self, other: &Vector3) -> f32 {
-        self.x * other.x + self.y * other.y + self.z * other.z
-    }
+}
 
-    pub fn cross(&self, other: &Vector3) -> Vector3 {
-        Vector3 {
+impl<T> Vector3<T>
+where
+    T: Float,
+{
+    pub fn cross(self, other: Self) -> Self {
+        Self {
             x: self.y * other.z - self.z * other.y,
             y: self.z * other.x - self.x * other.z,
             z: self.x * other.y - self.y * other.x,
         }
     }
 
-    pub fn normalize(&self) -> Vector3 {
+    pub fn magnitude(self) -> T {
+        (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
+    }
+    
+    pub fn dot(self, other: Self) -> T {
+        self.x * other.x + self.y * other.y + self.z * other.z
+    }
+    
+
+    pub fn distance(self, other: Self) -> T {
+        (self - other).magnitude()
+    }
+
+    pub fn normalize(self) -> Self {
         let len = self.magnitude();
-        if len > 0.0 {
-            Vector3 {
+        if len > T::zero() {
+            Self {
                 x: self.x / len,
                 y: self.y / len,
                 z: self.z / len,
             }
         } else {
-            Vector3::zero()
+            Self::zero()
+        }
+    }
+    
+    
+ 
+
+    pub fn scale(self, factor: T) -> Self {
+        Self {
+            x: self.x * factor,
+            y: self.y * factor,
+            z: self.z * factor,
         }
     }
 
-    pub fn to_vector4(&self, w: f32) -> Vector4 {
-        Vector4 {
-            x: self.x,
-            y: self.y,
-            z: self.z,
-            w,
+    pub fn zero() -> Self {
+        Self {
+            x: T::zero(),
+            y: T::zero(),
+            z: T::zero(),
         }
+    }
+
+    pub fn up() -> Self {
+        Self {
+            x: T::zero(),
+            y: T::one(),
+            z: T::zero(),
+        }
+    }
+   
+}
+
+impl<T> Vector3<T>
+where
+    T: Copy + NumCast,
+{
+    pub fn cast<G>(&self) -> Option<Vector3<G>>
+    where
+        G: NumCast,
+    {
+        Some(Vector3 {
+            x: NumCast::from(self.x)?,
+            y: NumCast::from(self.y)?,
+            z: NumCast::from(self.z)?,
+        })
     }
 }
 
-impl VectorOps<f32> for Vector3 {
-    fn add(self, other: Self) -> Self {
+// Operator overloading
+
+impl<T> Add for Vector3<T>
+where
+    T: Add<Output = T>,
+{
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self::Output {
         Self {
             x: self.x + other.x,
             y: self.y + other.y,
             z: self.z + other.z,
         }
     }
+}
 
-    fn sub(self, other: Self) -> Self {
+
+impl<T> Mul for Vector3<T>
+where
+    T: Mul<Output = T>,
+{
+    type Output = Self;
+
+    fn mul(self, other: Self) -> Self::Output {
+        Self {
+            x: self.x * other.x,
+            y: self.y * other.y,
+            z: self.z * other.z,
+        }
+    }
+}
+
+impl<T> Sub for Vector3<T>
+where
+    T: Sub<Output = T>,
+{
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self::Output {
         Self {
             x: self.x - other.x,
             y: self.y - other.y,
             z: self.z - other.z,
         }
     }
+}
 
-    fn scale(self, factor: f32) -> Self {
+impl<T> Mul<T> for Vector3<T>
+where
+    T: Mul<Output = T> + Copy,
+{
+    type Output = Self;
+
+    fn mul(self, factor: T) -> Self::Output {
         Self {
             x: self.x * factor,
             y: self.y * factor,
             z: self.z * factor,
         }
     }
+}
 
-    fn dot(self, other: Self) -> f32 {
-        self.x * other.x + self.y * other.y + self.z * other.z
-    }
+impl<T> Add<T> for Vector3<T>
+where
+    T: Add<Output = T> + Copy,
+{
+    type Output = Self;
 
-    fn magnitude(self) -> f32 {
-        (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
-    }
-
-    fn distance(self, other: Self) -> f32 {
-        (self - other).magnitude()
-    }
-
-    fn normalize(&self) -> Vector3 {
-        self.normalize()
-    }
-    fn zero() -> Self {
+    fn add(self, factor: T) -> Self::Output {
         Self {
-            x: 0.0,
-            y: 0.0,
-            z: 0.0,
-        }
-    }
-    fn up() -> Self {
-        Self {
-            x: 0.0,
-            y: 1.0,
-            z: 0.0,
+            x: self.x + factor,
+            y: self.y + factor,
+            z: self.z + factor,
         }
     }
 }
 
-impl Into<Vector2<i32>> for Vector3 {
+// Conversion from Vector3i
+impl From<Vector3<i32>> for Vector3<f32> {
+    fn from(value: Vector3<i32>) -> Self {
+        Self {
+            x: value.x as f32,
+            y: value.y as f32,
+            z: value.z as f32,
+        }
+    }
+}
+
+impl<T> Div<T> for Vector3<T>
+where
+    T: Div<Output = T> + Copy,
+{
+    type Output = Self;
+
+    fn div(self, rhs: T) -> Self::Output {
+        Self {
+            x: self.x / rhs,
+            y: self.y / rhs,
+            z: self.z / rhs,
+        }
+    }
+}
+
+
+impl<T> Div for Vector3<T>
+where
+    T: Div<Output = T>,
+{
+    type Output = Self;
+
+    fn div(self, other: Self) -> Self::Output {
+        Self {
+            x: self.x / other.x,
+            y: self.y / other.y,
+            z: self.z / other.z,
+        }
+    }
+}
+
+impl Into<Vector2<i32>> for Vector3<f32> {
     fn into(self) -> Vector2<i32> {
-        Vector2 {
-            x: self.x as i32,
-            y: self.y as i32,
-        }
-    }
-}
-
-impl Add for Vector3 {
-    type Output = Vector3;
-
-    fn add(self, rhs: Vector3) -> Vector3 {
-        Vector3 {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-        }
-    }
-}
-
-impl<'a, 'b> Add<&'b Vector3> for &'a Vector3 {
-    type Output = Vector3;
-
-    fn add(self, rhs: &'b Vector3) -> Vector3 {
-        Vector3 {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-        }
-    }
-}
-
-impl Sub for Vector3 {
-    type Output = Vector3;
-
-    fn sub(self, rhs: Vector3) -> Vector3 {
-        Vector3 {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-        }
-    }
-}
-
-impl<'a, 'b> Sub<&'b Vector3> for &'a Vector3 {
-    type Output = Vector3;
-
-    fn sub(self, rhs: &'b Vector3) -> Vector3 {
-        Vector3 {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-        }
-    }
-}
-
-impl Mul<f32> for Vector3 {
-    type Output = Vector3;
-
-    fn mul(self, factor: f32) -> Vector3 {
-        Vector3 {
-            x: self.x * factor,
-            y: self.y * factor,
-            z: self.z * factor,
-        }
+        Vector2 { x: self.x as i32, y: self.y as i32 }
     }
 }

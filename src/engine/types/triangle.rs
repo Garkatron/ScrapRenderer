@@ -1,15 +1,16 @@
-use crate::engine::types::vector::{vector3::Vector3, vector_ops::VectorOps};
+use crate::engine::types::vector::vector3::Vector3;
+
 
 #[derive(Clone, PartialEq)]
 pub struct Triangle {
-    pub v1: Vector3,
-    pub v2: Vector3,
-    pub v3: Vector3,
+    pub v1: Vector3<f32>,
+    pub v2: Vector3<f32>,
+    pub v3: Vector3<f32>,
     pub light_color: u32
 }
 
 impl Triangle {
-    pub fn new(v1: Vector3, v2: Vector3, v3: Vector3,) -> Self {
+    pub fn new(v1: Vector3<f32>, v2: Vector3<f32>, v3: Vector3<f32>,) -> Self {
         Self {
             v1,
             v2,

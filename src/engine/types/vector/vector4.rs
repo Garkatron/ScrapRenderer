@@ -22,7 +22,7 @@ impl Vector4 {
         Self { x, y, z, w }
     }
 
-    pub fn from_vector3(v: Vector3, w: f32) -> Vector4 {
+    pub fn from_vector3(v: Vector3<f32>, w: f32) -> Vector4 {
         Vector4 {
             x: v.x,
             y: v.y,
@@ -31,7 +31,7 @@ impl Vector4 {
         }
     }
 
-    pub fn to_vector3(&self) -> Vector3 {
+    pub fn to_vector3(&self) -> Vector3<f32> {
         if self.w != 0.0 {
             Vector3 {
                 x: self.x / self.w,

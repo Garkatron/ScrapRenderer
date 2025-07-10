@@ -17,7 +17,7 @@ use crate::engine::{
         object3d::Object3D,
         triangle::Triangle,
         vector::{
-            matrix4x4::{self, Matrix4x4}, vector2i::Vector2i, vector3::Vector3, vector_ops::VectorOps
+            matrix4x4::{self, Matrix4x4}, vector3::Vector3, vector_ops::VectorOps
         },
     },
 };
@@ -27,8 +27,8 @@ pub struct MyApp {
     pub engine: Engine3D,
     //pub kbcontroller: KeyboardController<'a>,
     pub objects: Vec<Mesh>,
-    pub camera: Vector3,
-    pub look_dir: Vector3,
+    pub camera: Vector3<f32>,
+    pub look_dir: Vector3<f32>,
     pub f_theta: f32,
     pub mat_proj: Matrix4x4,
     pub f_yaw: f32,
@@ -112,7 +112,7 @@ impl MyApp {
                 // Calc Normal
                 let l1 = tri_transformed.v2 - tri_transformed.v1;
                 let l2 = tri_transformed.v3 - tri_transformed.v1;
-                let normal = l1.cross(&l2).normalize(); // You normally need to normalize a normal
+                let normal = l1.cross(l2).normalize(); // You normally need to normalize a normal
 
                 // Avoid divide by 0 and triangles before camera.
                 if tri_transformed.v1.z <= 0.0

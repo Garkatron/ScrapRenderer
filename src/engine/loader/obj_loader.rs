@@ -13,7 +13,7 @@ impl ObjLoader {
         file.read_to_string(&mut contents)?;
 
         // Cache de vértices
-        let mut verts: Vec<Vector3> = vec![];
+        let mut verts: Vec<Vector3<f32>> = vec![];
 
         for line in contents.lines() {
             let data: Vec<&str> = line.split_whitespace().collect();

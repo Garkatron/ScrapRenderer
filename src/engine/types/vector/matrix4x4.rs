@@ -21,7 +21,7 @@ impl Matrix4x4 {
         Self { m: [[0.0; 4]; 4] }
     }
 
-    pub fn translation(to: Vector3) -> Self {
+    pub fn translation(to: Vector3<f32>) -> Self {
         let mut mat = Self::identity();
         mat.m[3][0] = to.x;
         mat.m[3][1] = to.y;
@@ -75,8 +75,8 @@ impl Matrix4x4 {
         result
     }
 
-    pub fn multiply_vec(mat: &Self, vec: &Vector3) -> Vector3 {
-        let v4 = vec.to_vector4(1.0);
+    pub fn multiply_vec(mat: &Self, vec: &Vector3<f32>) -> Vector3<f32> {
+        let v4 = Vector4::from_vector3(*vec, 1.0);
         let nx = v4.x * mat.m[0][0] + v4.y * mat.m[1][0] + v4.z * mat.m[2][0] + v4.w * mat.m[3][0];
         let ny = v4.x * mat.m[0][1] + v4.y * mat.m[1][1] + v4.z * mat.m[2][1] + v4.w * mat.m[3][1];
         let nz = v4.x * mat.m[0][2] + v4.y * mat.m[1][2] + v4.z * mat.m[2][2] + v4.w * mat.m[3][2];
@@ -98,16 +98,16 @@ impl Matrix4x4 {
         mat_proj
     }
 
-    pub fn point_at(pos: Vector3, target: Vector3, up: Vector3) -> Matrix4x4 {
+    pub fn point_at(pos: Vector3<f32>, target: Vector3<f32>, up: Vector3<f32>) -> Matrix4x4 {
         // Calculate new forward direction
         let new_forward = (target - pos).normalize();
 
         // Calculate new Up direction
-        let a = new_forward * up.dot(&new_forward);
+        let a = new_forward * up.dot(new_forward);
         let new_up = (up - a).normalize();
 
         // Construct Dimensioning and Translation Matrix
-        let new_right = new_up.cross(&new_forward);
+        let new_right = new_up.cross(new_forward.cast::<f32>().expect("Error casting vi32 to f32"));
         let mut matrix = Matrix4x4::identity();
         matrix.m[0][0] = new_right.x;	matrix.m[0][1] = new_right.y;	matrix.m[0][2] = new_right.z;	matrix.m[0][3] = 0.0;
 		matrix.m[1][0] = new_up.x;		matrix.m[1][1] = new_up.y;		matrix.m[1][2] = new_up.z;		matrix.m[1][3] = 0.0;
