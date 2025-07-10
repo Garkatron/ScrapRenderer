@@ -1,6 +1,6 @@
 use std::f32::consts::PI;
 
-use crate::engine::types::vector::{vector3::Vector3, vector4::Vector4};
+use crate::engine::types::vector::{vector3::Vector3, vector4::Vector4, vector_ops::VectorOps};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Matrix4x4 {
@@ -81,7 +81,7 @@ impl Matrix4x4 {
         let ny = v4.x * mat.m[0][1] + v4.y * mat.m[1][1] + v4.z * mat.m[2][1] + v4.w * mat.m[3][1];
         let nz = v4.x * mat.m[0][2] + v4.y * mat.m[1][2] + v4.z * mat.m[2][2] + v4.w * mat.m[3][2];
         let nw = v4.x * mat.m[0][3] + v4.y * mat.m[1][3] + v4.z * mat.m[2][3] + v4.w * mat.m[3][3];
-        Vector4 { x: nx, y: ny, z: nz, w: nw }.to_vector3()
+        Vector4 { x: nx, y: ny, z: nz, w: nw }.perspective_divide()
     }
 
     pub fn project(f_near: f32, f_far: f32, f_fov: f32, height: usize, width: usize) -> Matrix4x4{

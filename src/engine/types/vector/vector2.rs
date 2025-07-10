@@ -1,6 +1,8 @@
 use num_traits::{Float, NumCast, One, Zero};
 use std::ops::{Add, Div, Mul, Sub};
 
+use crate::engine::types::vector::vector_ops::VectorOps;
+
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Vector2<T> {
@@ -13,56 +15,43 @@ impl<T> Vector2<T> {
         Self { x, y }
     }
 }
-
-impl<T> Vector2<T>
+impl<T> VectorOps<T> for Vector2<T>
 where
     T: Float,
 {
-    pub fn magnitude(self) -> T {
-        (self.x * self.x + self.y * self.y).sqrt()
+    fn add(self, other: Self) -> Self {
+        self + other
     }
 
-    pub fn distance(self, other: Self) -> T {
-        (self - other).magnitude()
+    fn sub(self, other: Self) -> Self {
+        self - other
     }
 
-    pub fn normalize(self) -> Self {
-        let len = self.magnitude();
-        if len > T::zero() {
-            Self {
-                x: self.x / len,
-                y: self.y / len,
-            }
-        } else {
-            Self::zero()
-        }
+    fn scale(self, factor: T) -> Self {
+        self * factor
     }
 
-    pub fn dot(self, other: Self) -> T {
+    fn dot(self, other: Self) -> T {
         self.x * other.x + self.y * other.y
     }
 
-    pub fn scale(self, factor: T) -> Self {
-        Self {
-            x: self.x * factor,
-            y: self.y * factor,
-        }
+    fn magnitude(self) -> T {
+        (self.x * self.x + self.y * self.y).sqrt()
     }
 
-    pub fn zero() -> Self {
-        Self {
-            x: T::zero(),
-            y: T::zero(),
-        }
-    }
-
-    pub fn up() -> Self {
+    fn up() -> Self {
         Self {
             x: T::zero(),
             y: T::one(),
         }
     }
-   
+
+    fn zero() -> Self {
+        Self {
+            x: T::zero(),
+            y: T::zero(),
+        }
+    }
 }
 
 impl<T> Vector2<T>

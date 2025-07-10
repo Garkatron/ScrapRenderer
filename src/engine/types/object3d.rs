@@ -1,4 +1,4 @@
-use crate::engine::types::vector::{matrix4x4::Matrix4x4, vector3::Vector3};
+use crate::engine::types::vector::{matrix4x4::Matrix4x4, vector3::Vector3, vector_ops::VectorOps};
 
 
 pub struct Object3D {

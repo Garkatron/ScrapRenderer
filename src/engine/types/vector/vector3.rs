@@ -1,7 +1,7 @@
 use num_traits::{Float, NumCast, One, Zero};
 use std::ops::{Add, Div, Mul, Sub};
 
-use crate::engine::types::vector::vector2::Vector2;
+use crate::engine::types::vector::{vector2::Vector2, vector_ops::VectorOps};
 
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -15,13 +15,55 @@ impl<T> Vector3<T> {
     pub fn new(x: T, y: T, z: T) -> Self {
         Self { x, y, z }
     }
+
     
+}
+impl<T> VectorOps<T> for Vector3<T>
+where
+    T: Float,
+{
+    fn add(self, other: Self) -> Self {
+        self + other
+    }
+
+    fn sub(self, other: Self) -> Self {
+        self - other
+    }
+
+    fn scale(self, factor: T) -> Self {
+        self * factor
+    }
+
+    fn dot(self, other: Self) -> T {
+        self.x * other.x + self.y * other.y + self.z * other.z
+    }
+
+    fn magnitude(self) -> T {
+        (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
+    }
+
+    fn up() -> Self {
+        Self {
+            x: T::zero(),
+            y: T::one(),
+            z: T::zero(),
+        }
+    }
+
+    fn zero() -> Self {
+        Self {
+            x: T::zero(),
+            y: T::zero(),
+            z: T::zero(),
+        }
+    }
 }
 
 impl<T> Vector3<T>
 where
     T: Float,
 {
+
     pub fn cross(self, other: Self) -> Self {
         Self {
             x: self.y * other.z - self.z * other.y,
@@ -29,60 +71,6 @@ where
             z: self.x * other.y - self.y * other.x,
         }
     }
-
-    pub fn magnitude(self) -> T {
-        (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
-    }
-    
-    pub fn dot(self, other: Self) -> T {
-        self.x * other.x + self.y * other.y + self.z * other.z
-    }
-    
-
-    pub fn distance(self, other: Self) -> T {
-        (self - other).magnitude()
-    }
-
-    pub fn normalize(self) -> Self {
-        let len = self.magnitude();
-        if len > T::zero() {
-            Self {
-                x: self.x / len,
-                y: self.y / len,
-                z: self.z / len,
-            }
-        } else {
-            Self::zero()
-        }
-    }
-    
-    
- 
-
-    pub fn scale(self, factor: T) -> Self {
-        Self {
-            x: self.x * factor,
-            y: self.y * factor,
-            z: self.z * factor,
-        }
-    }
-
-    pub fn zero() -> Self {
-        Self {
-            x: T::zero(),
-            y: T::zero(),
-            z: T::zero(),
-        }
-    }
-
-    pub fn up() -> Self {
-        Self {
-            x: T::zero(),
-            y: T::one(),
-            z: T::zero(),
-        }
-    }
-   
 }
 
 impl<T> Vector3<T>

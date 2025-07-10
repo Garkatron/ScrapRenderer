@@ -6,7 +6,7 @@ use crate::engine::{
     rendering::{mesh::Mesh, palette::Palette, renderer::Renderer, renderer_2d::Renderer2D},
     types::{
         triangle::Triangle,
-        vector::{vector2::Vector2, vector3::Vector3},
+        vector::{vector2::Vector2, vector3::Vector3, vector_ops::VectorOps},
     },
 };
 
