@@ -75,13 +75,12 @@ impl Matrix4x4 {
         result
     }
 
-    pub fn multiply_vec(mat: &Self, vec: &Vector3<f32>) -> Vector3<f32> {
-        let v4 = Vector4::from_vector3(*vec, 1.0);
-        let nx = v4.x * mat.m[0][0] + v4.y * mat.m[1][0] + v4.z * mat.m[2][0] + v4.w * mat.m[3][0];
-        let ny = v4.x * mat.m[0][1] + v4.y * mat.m[1][1] + v4.z * mat.m[2][1] + v4.w * mat.m[3][1];
-        let nz = v4.x * mat.m[0][2] + v4.y * mat.m[1][2] + v4.z * mat.m[2][2] + v4.w * mat.m[3][2];
-        let nw = v4.x * mat.m[0][3] + v4.y * mat.m[1][3] + v4.z * mat.m[2][3] + v4.w * mat.m[3][3];
-        Vector4 { x: nx, y: ny, z: nz, w: nw }.perspective_divide()
+    pub fn multiply_vec(mat: &Self, vec: &Vector4<f32>) -> Vector4<f32> {
+        let nx = vec.x * mat.m[0][0] + vec.y * mat.m[1][0] + vec.z * mat.m[2][0] + vec.w * mat.m[3][0];
+        let ny = vec.x * mat.m[0][1] + vec.y * mat.m[1][1] + vec.z * mat.m[2][1] + vec.w * mat.m[3][1];
+        let nz = vec.x * mat.m[0][2] + vec.y * mat.m[1][2] + vec.z * mat.m[2][2] + vec.w * mat.m[3][2];
+        let nw = vec.x * mat.m[0][3] + vec.y * mat.m[1][3] + vec.z * mat.m[2][3] + vec.w * mat.m[3][3];
+        Vector4 { x: nx, y: ny, z: nz, w: nw }
     }
 
     pub fn project(f_near: f32, f_far: f32, f_fov: f32, height: usize, width: usize) -> Matrix4x4{

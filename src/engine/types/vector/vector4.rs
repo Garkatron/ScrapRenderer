@@ -1,7 +1,7 @@
 use num_traits::{Float, NumCast, One, Zero};
 use std::ops::{Add, Div, Mul, Sub};
 
-use crate::engine::types::vector::{vector3::Vector3, vector_ops::VectorOps};
+use crate::engine::types::vector::{vector_ops::VectorOps, vector2::Vector2, vector3::Vector3};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vector4<T> {
@@ -38,19 +38,42 @@ where
     }
 
     /// Divide x, y, z por w si w != 0, para hacer proyección en espacio 3D
-    pub fn perspective_divide(&self) -> Vector3<T> {
-        if self.w != T::zero() {
-            Vector3 {
-                x: self.x / self.w,
-                y: self.y / self.w,
-                z: self.z / self.w,
+    pub fn perspective_divide(&self) -> Vector4<T>
+    where
+        T: num_traits::Float + Copy,
+    {
+        if self.w.abs() > T::epsilon() {
+            let inv_w = T::one() / self.w;
+            Vector4 {
+                x: self.x * inv_w,
+                y: self.y * inv_w,
+                z: self.z * inv_w,
+                w: T::one(),
             }
         } else {
-            Vector3 {
+            // Alternativa: podrías retornar un vector inválido, NaNs, o generar error si w ≈ 0
+            Vector4 {
                 x: self.x,
                 y: self.y,
                 z: self.z,
+                w: self.w,
             }
+        }
+    }
+
+    pub fn cross(self, other: Self) -> Self {
+        Self {
+            x: self.y * other.z - self.z * other.y,
+            y: self.z * other.x - self.x * other.z,
+            z: self.x * other.y - self.y * other.x,
+            w: self.w,
+        }
+    }
+    pub fn to_vector3(self) -> Vector3<T> {
+        Vector3 {
+            x: self.x,
+            y: self.y,
+            z: self.z,
         }
     }
 }
@@ -96,8 +119,6 @@ where
         }
     }
 }
-
-
 
 impl<T> Add for Vector4<T>
 where
@@ -219,6 +240,15 @@ where
             y: self.y / other.y,
             z: self.z / other.z,
             w: self.w / other.w,
+        }
+    }
+}
+
+impl Into<Vector2<i32>> for Vector4<f32> {
+    fn into(self) -> Vector2<i32> {
+        Vector2 {
+            x: self.x as i32,
+            y: self.y as i32,
         }
     }
 }

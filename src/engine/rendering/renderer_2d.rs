@@ -26,6 +26,8 @@ impl Renderer2D {
 }
 
 impl Renderer for Renderer2D {
+    
+    
     fn render(&mut self, _delta_time: f32) {
         if let Err(e) = self
             .window

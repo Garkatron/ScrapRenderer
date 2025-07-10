@@ -5,3 +5,5 @@ pub mod mesh;
 pub mod camera;
 pub mod palette;
 pub mod palettes;
+pub mod texture;
+pub mod texture_poll;

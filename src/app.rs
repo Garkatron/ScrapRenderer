@@ -15,17 +15,15 @@ use crate::engine::{
     rendering::{
         camera::Camera3D,
         mesh::Mesh,
-        palettes::{PALETTE_DEFAULT, PALETTE_PINK, PaletteDefault, PalettePink},
+        palettes::{PaletteDefault, PalettePink, PALETTE_DEFAULT, PALETTE_PINK},
         renderer::Renderer,
-        renderer_3d::Renderer3D,
+        renderer_3d::Renderer3D, texture_poll::TexturePool,
     },
     types::{
         object3d::Object3D,
         triangle::Triangle,
         vector::{
-            matrix4x4::{self, Matrix4x4},
-            vector_ops::VectorOps,
-            vector3::Vector3,
+            matrix4x4::{self, Matrix4x4}, vector3::Vector3, vector4::Vector4, vector_ops::VectorOps
         },
     },
 };
@@ -45,14 +43,136 @@ impl MyApp {
         let w = Rc::new(RefCell::new(window));
         let mut objects = vec![];
 
-        let mut obj = ObjLoader::from_file("/home/deus/Documents/models/african_head.obj").unwrap();
-        obj.obj.position.z += 20.0;
+        /*let mut obj = ObjLoader::from_file("/home/deus/Documents/models/african_head.obj").unwrap();
+        obj.obj.position.z += 10.0;
         obj.obj.rotation.y += 0.0;
         obj.obj.rotation.x += 0.0;
         obj.obj.rotation.z += 0.0;
-        objects.push(obj);
+        objects.push(obj);*/
+
+        objects.push(Mesh {
+            obj: Object3D::new(Vector3::new(0.0, 0.0, 5.0), Vector3::new(1.0, 10.0, 0.0)),
+            tris: vec![
+                // SOUTH
+                Triangle::new(
+                    Vector4::new(0.0, 0.0, 0.0, 1.0),
+                    Vector4::new(0.0, 1.0, 0.0, 1.0),
+                    Vector4::new(1.0, 1.0, 0.0, 1.0),
+                ).set_uv([
+                    Vector3::new(0.0, 1.0, 1.0),
+                    Vector3::new(0.0, 0.0, 1.0),
+                    Vector3::new(1.0, 0.0, 1.0),
+                ]),
+                Triangle::new(
+                    Vector4::new(0.0, 0.0, 0.0, 1.0),
+                    Vector4::new(1.0, 1.0, 0.0, 1.0),
+                    Vector4::new(1.0, 0.0, 0.0, 1.0),
+                ).set_uv([
+                    Vector3::new(0.0, 1.0, 1.0),
+                    Vector3::new(1.0, 0.0, 1.0),
+                    Vector3::new(1.0, 1.0, 1.0),
+                ]),
+                // EAST
+                Triangle::new(
+                    Vector4::new(1.0, 0.0, 0.0, 1.0),
+                    Vector4::new(1.0, 1.0, 0.0, 1.0),
+                    Vector4::new(1.0, 1.0, 1.0, 1.0),
+                ).set_uv([
+                    Vector3::new(0.0, 1.0, 1.0),
+                    Vector3::new(0.0, 0.0, 1.0),
+                    Vector3::new(1.0, 0.0, 1.0),
+                ]),
+                Triangle::new(
+                    Vector4::new(1.0, 0.0, 0.0, 1.0),
+                    Vector4::new(1.0, 1.0, 1.0, 1.0),
+                    Vector4::new(1.0, 0.0, 1.0, 1.0),
+                ).set_uv([
+                    Vector3::new(0.0, 1.0, 1.0),
+                    Vector3::new(1.0, 0.0, 1.0),
+                    Vector3::new(1.0, 1.0, 1.0),
+                ]),
+                // NORTH
+                Triangle::new(
+                    Vector4::new(1.0, 0.0, 1.0, 1.0),
+                    Vector4::new(1.0, 1.0, 1.0, 1.0),
+                    Vector4::new(0.0, 1.0, 1.0, 1.0),
+                ).set_uv([
+                    Vector3::new(0.0, 1.0, 1.0),
+                    Vector3::new(0.0, 0.0, 1.0),
+                    Vector3::new(1.0, 0.0, 1.0),
+                ]),
+                Triangle::new(
+                    Vector4::new(1.0, 0.0, 1.0, 1.0),
+                    Vector4::new(0.0, 1.0, 1.0, 1.0),
+                    Vector4::new(0.0, 0.0, 1.0, 1.0),
+                ).set_uv([
+                    Vector3::new(0.0, 1.0, 1.0),
+                    Vector3::new(1.0, 0.0, 1.0),
+                    Vector3::new(1.0, 1.0, 1.0),
+                ]),
+                // WEST
+                Triangle::new(
+                    Vector4::new(0.0, 0.0, 1.0, 1.0),
+                    Vector4::new(0.0, 1.0, 1.0, 1.0),
+                    Vector4::new(0.0, 1.0, 0.0, 1.0),
+                ).set_uv([
+                    Vector3::new(0.0, 1.0, 1.0),
+                    Vector3::new(0.0, 0.0, 1.0),
+                    Vector3::new(1.0, 0.0, 1.0),
+                ]),
+                Triangle::new(
+                    Vector4::new(0.0, 0.0, 1.0, 1.0),
+                    Vector4::new(0.0, 1.0, 0.0, 1.0),
+                    Vector4::new(0.0, 0.0, 0.0, 1.0),
+                ).set_uv([
+                    Vector3::new(0.0, 1.0, 1.0),
+                    Vector3::new(1.0, 0.0, 1.0),
+                    Vector3::new(1.0, 1.0, 1.0),
+                ]),
+                // TOP
+                Triangle::new(
+                    Vector4::new(0.0, 1.0, 0.0, 1.0),
+                    Vector4::new(0.0, 1.0, 1.0, 1.0),
+                    Vector4::new(1.0, 1.0, 1.0, 1.0),
+                ).set_uv([
+                    Vector3::new(0.0, 1.0, 1.0),
+                    Vector3::new(0.0, 0.0, 1.0),
+                    Vector3::new(1.0, 0.0, 1.0),
+                ]),
+                Triangle::new(
+                    Vector4::new(0.0, 1.0, 0.0, 1.0),
+                    Vector4::new(1.0, 1.0, 1.0, 1.0),
+                    Vector4::new(1.0, 1.0, 0.0, 1.0),
+                ).set_uv([
+                    Vector3::new(0.0, 1.0, 1.0),
+                    Vector3::new(1.0, 0.0, 1.0),
+                    Vector3::new(1.0, 1.0, 1.0),
+                ]),
+                // BOTTOM
+                Triangle::new(
+                    Vector4::new(1.0, 0.0, 1.0, 1.0),
+                    Vector4::new(0.0, 0.0, 1.0, 1.0),
+                    Vector4::new(0.0, 0.0, 0.0, 1.0),
+                ).set_uv([
+                    Vector3::new(0.0, 1.0, 1.0),
+                    Vector3::new(0.0, 0.0, 1.0),
+                    Vector3::new(1.0, 0.0, 1.0),
+                ]),
+                Triangle::new(
+                    Vector4::new(1.0, 0.0, 1.0, 1.0),
+                    Vector4::new(0.0, 0.0, 0.0, 1.0),
+                    Vector4::new(1.0, 0.0, 0.0, 1.0),
+                ).set_uv([
+                    Vector3::new(0.0, 1.0, 1.0),
+                    Vector3::new(1.0, 0.0, 1.0),
+                    Vector3::new(1.0, 1.0, 1.0),
+                ]),
+            ],
+        });
 
         let mat_proj = Matrix4x4::project(0.1, 1000.0, 90.0, height, width);
+        let mut texture_poll = TexturePool::new();
+        texture_poll.reg_from_path("test", "/home/deus/Documents/textures/Bob/grass/grass16.png");
 
         Self {
             window: w.clone(),
@@ -60,6 +180,7 @@ impl MyApp {
                 running: true,
                 renderer: Renderer3D::new(vec![0; width * height], width, height, w.clone()),
                 kbcontroller: KeyboardController::new(w.clone()),
+                texture_poll
             },
             //kbcontroller: KeyboardController::new(&window)
             objects,
@@ -72,8 +193,7 @@ impl MyApp {
 
     pub fn render(&mut self, delta_time: f32) {
         //println!("FPS: {:.2}", 1.0 / delta_time);
-
-        self.engine.renderer.clear(PALETTE_DEFAULT::BLACK.to_u32());
+        self.engine.renderer.clear(0);
 
         self.f_theta += 1.0 * delta_time;
         // self.objects.get_mut(0).unwrap().obj.rotation.y = self.f_theta;
@@ -88,23 +208,23 @@ impl MyApp {
                 // 2. Translate
                 let transform_matrix = obj.transform_matrix();
 
-                // 3.
+                // 3. World Matrix
                 let world_matrix = Matrix4x4::multiply_matrix(&rotation_matrix, &transform_matrix);
 
+                // 4. Camera
                 let camera_matrix = self.camera.calc_view();
 
-
-                let tri_transformed = Triangle {
-                    v1: Matrix4x4::multiply_vec(&world_matrix, &tri.v1),
-                    v2: Matrix4x4::multiply_vec(&world_matrix, &tri.v2),
-                    v3: Matrix4x4::multiply_vec(&world_matrix, &tri.v3),
-                    light_color: 0,
-                };
+                let tri_transformed = Triangle::new(
+                    Matrix4x4::multiply_vec(&world_matrix, &tri.v1).perspective_divide(),
+                    Matrix4x4::multiply_vec(&world_matrix, &tri.v2).perspective_divide(),
+                    Matrix4x4::multiply_vec(&world_matrix, &tri.v3).perspective_divide(),
+                )
+                .set_light_color(0);
 
                 // Calc Normal
                 let l1 = tri_transformed.v2 - tri_transformed.v1;
                 let l2 = tri_transformed.v3 - tri_transformed.v1;
-                let normal = l1.cross(l2).normalize(); // You normally need to normalize a normal
+                let normal = l1.cross(l2).to_vector3().normalize(); // You normally need to normalize a normal
 
                 // Avoid divide by 0 and triangles before camera.
                 if tri_transformed.v1.z <= 0.0
@@ -115,7 +235,7 @@ impl MyApp {
                 }
 
                 // Get ray from triangle to camera
-                let v_camera_ray = tri_transformed.v1 - self.camera.position;
+                let v_camera_ray = tri_transformed.v1.to_vector3() - self.camera.position;
 
                 // If ray is aligned with normal, make it visible.
                 if normal.dot(v_camera_ray) < 0.0 {
@@ -124,36 +244,38 @@ impl MyApp {
 
                     let colour: u32 = Renderer3D::get_shading_color(dp, &PalettePink);
 
-                    let viewed_triangle = Triangle {
-                        v1: Matrix4x4::multiply_vec(&camera_matrix, &tri_transformed.v1),
-                        v2: Matrix4x4::multiply_vec(&camera_matrix, &tri_transformed.v2),
-                        v3: Matrix4x4::multiply_vec(&camera_matrix, &tri_transformed.v3),
-                        light_color: colour,
-                    };
+                    let viewed_triangle = Triangle::new(
+                        Matrix4x4::multiply_vec(&camera_matrix, &tri_transformed.v1).perspective_divide(),
+                        Matrix4x4::multiply_vec(&camera_matrix, &tri_transformed.v2).perspective_divide(),
+                        Matrix4x4::multiply_vec(&camera_matrix, &tri_transformed.v3).perspective_divide(),
+                    )
+                    .set_light_color(colour);
 
                     // Clip viewed triangle againts near plane, this could form two aditional triangles.
 
                     let clipped = Renderer3D::triangle_clip_against_plane(
-                        Vector3 {
+                        Vector4 {
                             x: 0.0,
                             y: 0.0,
                             z: 0.2,
+                            w: 1.0
                         },
-                        Vector3 {
+                        Vector4 {
                             x: 0.0,
                             y: 0.0,
                             z: 1.0,
+                            w: 1.0
                         },
                         &viewed_triangle,
                     );
 
                     for tc in clipped {
-                        let mut projected = Triangle {
-                            v1: Matrix4x4::multiply_vec(&self.mat_proj, &tc.v1),
-                            v2: Matrix4x4::multiply_vec(&self.mat_proj, &tc.v2),
-                            v3: Matrix4x4::multiply_vec(&self.mat_proj, &tc.v3),
-                            light_color: tc.light_color,
-                        };
+                        let mut projected = Triangle::new(
+                            Matrix4x4::multiply_vec(&self.mat_proj, &tc.v1).perspective_divide(),
+                            Matrix4x4::multiply_vec(&self.mat_proj, &tc.v2).perspective_divide(),
+                            Matrix4x4::multiply_vec(&self.mat_proj, &tc.v3).perspective_divide(),
+                        )
+                        .set_light_color(tc.light_color);
 
                         // Convertir a coordenadas de pantalla
                         for v in [&mut projected.v1, &mut projected.v2, &mut projected.v3] {
@@ -175,6 +297,8 @@ impl MyApp {
                     .reverse() // Back to front (descending order)
             });
 
+            self.engine.renderer.depth_buffer.fill(0.0);
+
             // Loop through all transformed, viewed, projected, and sorted triangles
             for tri_to_raster in triangles_to_raster {
                 let mut tri_queue: Vec<Triangle> = vec![tri_to_raster];
@@ -185,54 +309,62 @@ impl MyApp {
                     for test in tri_queue.drain(..) {
                         let clipped = match edge {
                             0 => Renderer3D::triangle_clip_against_plane(
-                                Vector3 {
+                                Vector4 {
                                     x: 0.0,
                                     y: 0.0,
                                     z: 0.0,
+                                    w: 1.0
                                 },
-                                Vector3 {
+                                Vector4 {
                                     x: 0.0,
                                     y: 1.0,
                                     z: 0.0,
+                                    w: 1.0
                                 },
                                 &test,
                             ),
                             1 => Renderer3D::triangle_clip_against_plane(
-                                Vector3 {
+                                Vector4 {
                                     x: 0.0,
                                     y: (self.engine.renderer.height() as f32) - 1.0,
                                     z: 0.0,
+                                    w: 1.0
                                 },
-                                Vector3 {
+                                Vector4 {
                                     x: 0.0,
                                     y: -1.0,
                                     z: 0.0,
+                                    w: 1.0
                                 },
                                 &test,
                             ),
                             2 => Renderer3D::triangle_clip_against_plane(
-                                Vector3 {
+                                Vector4 {
                                     x: 0.0,
                                     y: 0.0,
                                     z: 0.0,
+                                    w: 1.0
                                 },
-                                Vector3 {
+                                Vector4 {
                                     x: 1.0,
                                     y: 0.0,
                                     z: 0.0,
+                                    w: 1.0
                                 },
                                 &test,
                             ),
                             3 => Renderer3D::triangle_clip_against_plane(
-                                Vector3 {
+                                Vector4 {
                                     x: (self.engine.renderer.width() as f32) - 1.0,
                                     y: 0.0,
                                     z: 0.0,
+                                    w: 1.0
                                 },
-                                Vector3 {
+                                Vector4 {
                                     x: -1.0,
                                     y: 0.0,
                                     z: 0.0,
+                                    w: 1.0
                                 },
                                 &test,
                             ),
@@ -244,19 +376,20 @@ impl MyApp {
                     tri_queue = new_triangles;
                 }
                 for t in tri_queue {
-                    self.engine.renderer.fill_triangle(
+                    /*self.engine.renderer.fill_triangle(
                         t.v1.into(),
                         t.v2.into(),
                         t.v3.into(),
                         t.light_color,
-                    );
-                    /*
+                    );*/
+                    self.engine.renderer.textured_triangle(t.v1.into(), t.uv[0], t.v2.into(), t.uv[1], t.v3.into(), t.uv[2], self.engine.texture_poll.get_or_panic("test"));
+                    
                     self.engine.renderer.draw_triangle(
                         t.v1.into(),
                         t.v2.into(),
                         t.v3.into(),
-                        PALETTE_DEFAULT::BLACK.to_u32(),
-                    );*/
+                        PALETTE_DEFAULT::RED.to_u32(),
+                    );
                 }
             }
         }

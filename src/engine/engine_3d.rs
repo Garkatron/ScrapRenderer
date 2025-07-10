@@ -1,7 +1,8 @@
-use crate::engine::{control::keyboard::KeyboardController, rendering::{renderer::Renderer, renderer_3d::Renderer3D}};
+use crate::engine::{control::keyboard::KeyboardController, rendering::{renderer::Renderer, renderer_3d::Renderer3D, texture_poll::TexturePool}};
 pub struct Engine3D {
     pub running: bool,
     pub renderer: Renderer3D,
+    pub texture_poll: TexturePool,
     pub kbcontroller: KeyboardController,
 }
 

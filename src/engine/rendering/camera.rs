@@ -1,5 +1,5 @@
 #![allow(unused_variables)]
-use crate::engine::types::vector::{matrix4x4::Matrix4x4, vector_ops::VectorOps, vector3::Vector3};
+use crate::engine::types::vector::{matrix4x4::Matrix4x4, vector3::Vector3, vector4::Vector4, vector_ops::VectorOps};
 
 pub struct Camera3D {
     pub position: Vector3<f32>,
@@ -28,7 +28,7 @@ impl Camera3D {
         };
 
         let mat_camera_rot = Matrix4x4::rotation_y(self.f_yaw);
-        self.look_dir = Matrix4x4::multiply_vec(&mat_camera_rot, &v_target);
+        self.look_dir = Matrix4x4::multiply_vec(&mat_camera_rot, &Vector4::from_vector3(v_target, 1.0)).to_vector3();
 
         v_target = self.position + self.look_dir;
 
