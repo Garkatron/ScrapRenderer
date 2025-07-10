@@ -12,12 +12,20 @@ use crate::engine::{
     control::keyboard::KeyboardController,
     engine_3d::Engine3D,
     loader::obj_loader::ObjLoader,
-    rendering::{camera::Camera3D, mesh::Mesh, palettes::{PaletteDefault, PalettePink, PALETTE_DEFAULT, PALETTE_PINK}, renderer::Renderer, renderer_3d::Renderer3D},
+    rendering::{
+        camera::Camera3D,
+        mesh::Mesh,
+        palettes::{PALETTE_DEFAULT, PALETTE_PINK, PaletteDefault, PalettePink},
+        renderer::Renderer,
+        renderer_3d::Renderer3D,
+    },
     types::{
         object3d::Object3D,
         triangle::Triangle,
         vector::{
-            matrix4x4::{self, Matrix4x4}, vector3::Vector3, vector_ops::VectorOps
+            matrix4x4::{self, Matrix4x4},
+            vector_ops::VectorOps,
+            vector3::Vector3,
         },
     },
 };
@@ -27,11 +35,9 @@ pub struct MyApp {
     pub engine: Engine3D,
     //pub kbcontroller: KeyboardController<'a>,
     pub objects: Vec<Mesh>,
-    pub camera: Vector3<f32>,
-    pub look_dir: Vector3<f32>,
+    pub camera: Camera3D,
     pub f_theta: f32,
     pub mat_proj: Matrix4x4,
-    pub f_yaw: f32,
 }
 
 impl MyApp {
@@ -39,7 +45,7 @@ impl MyApp {
         let w = Rc::new(RefCell::new(window));
         let mut objects = vec![];
 
-        let mut obj = ObjLoader::from_file("/home/deus/Documents/models/mountains.obj").unwrap();
+        let mut obj = ObjLoader::from_file("/home/deus/Documents/models/african_head.obj").unwrap();
         obj.obj.position.z += 20.0;
         obj.obj.rotation.y += 0.0;
         obj.obj.rotation.x += 0.0;
@@ -57,12 +63,10 @@ impl MyApp {
             },
             //kbcontroller: KeyboardController::new(&window)
             objects,
-            camera: Vector3::new(0.0, 0.0, 0.0),
-            look_dir: Vector3::zero(),
+            camera: Camera3D::new(Vector3::new(0.0, 0.0, 0.0), width, height),
             //camera: Camera3D::new(Vector3::new(0.0, 0.1, 5.0), width, height),
             f_theta: 0.0,
             mat_proj,
-            f_yaw: 0.0,
         }
     }
 
@@ -87,20 +91,8 @@ impl MyApp {
                 // 3.
                 let world_matrix = Matrix4x4::multiply_matrix(&rotation_matrix, &transform_matrix);
 
-                let v_up = Vector3::up();
-                let mut v_target = Vector3 {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 1.0,
-                };
+                let camera_matrix = self.camera.calc_view();
 
-                let mat_camera_rot = Matrix4x4::rotation_y(self.f_yaw);
-                self.look_dir = Matrix4x4::multiply_vec(&mat_camera_rot, &v_target);
-
-                v_target = self.camera + self.look_dir;
-
-                let mat_camera = Matrix4x4::point_at(self.camera, v_target, v_up);
-                let mat_view = Matrix4x4::quick_inverse(&mat_camera);
 
                 let tri_transformed = Triangle {
                     v1: Matrix4x4::multiply_vec(&world_matrix, &tri.v1),
@@ -123,7 +115,7 @@ impl MyApp {
                 }
 
                 // Get ray from triangle to camera
-                let v_camera_ray = tri_transformed.v1 - self.camera;
+                let v_camera_ray = tri_transformed.v1 - self.camera.position;
 
                 // If ray is aligned with normal, make it visible.
                 if normal.dot(v_camera_ray) < 0.0 {
@@ -133,9 +125,9 @@ impl MyApp {
                     let colour: u32 = Renderer3D::get_shading_color(dp, &PalettePink);
 
                     let viewed_triangle = Triangle {
-                        v1: Matrix4x4::multiply_vec(&mat_view, &tri_transformed.v1),
-                        v2: Matrix4x4::multiply_vec(&mat_view, &tri_transformed.v2),
-                        v3: Matrix4x4::multiply_vec(&mat_view, &tri_transformed.v3),
+                        v1: Matrix4x4::multiply_vec(&camera_matrix, &tri_transformed.v1),
+                        v2: Matrix4x4::multiply_vec(&camera_matrix, &tri_transformed.v2),
+                        v3: Matrix4x4::multiply_vec(&camera_matrix, &tri_transformed.v3),
                         light_color: colour,
                     };
 
@@ -186,15 +178,23 @@ impl MyApp {
             // Loop through all transformed, viewed, projected, and sorted triangles
             for tri_to_raster in triangles_to_raster {
                 let mut tri_queue: Vec<Triangle> = vec![tri_to_raster];
-            
+
                 for edge in 0..4 {
                     let mut new_triangles: Vec<Triangle> = vec![];
-            
+
                     for test in tri_queue.drain(..) {
                         let clipped = match edge {
                             0 => Renderer3D::triangle_clip_against_plane(
-                                Vector3 { x: 0.0, y: 0.0, z: 0.0 },
-                                Vector3 { x: 0.0, y: 1.0, z: 0.0 },
+                                Vector3 {
+                                    x: 0.0,
+                                    y: 0.0,
+                                    z: 0.0,
+                                },
+                                Vector3 {
+                                    x: 0.0,
+                                    y: 1.0,
+                                    z: 0.0,
+                                },
                                 &test,
                             ),
                             1 => Renderer3D::triangle_clip_against_plane(
@@ -203,12 +203,24 @@ impl MyApp {
                                     y: (self.engine.renderer.height() as f32) - 1.0,
                                     z: 0.0,
                                 },
-                                Vector3 { x: 0.0, y: -1.0, z: 0.0 },
+                                Vector3 {
+                                    x: 0.0,
+                                    y: -1.0,
+                                    z: 0.0,
+                                },
                                 &test,
                             ),
                             2 => Renderer3D::triangle_clip_against_plane(
-                                Vector3 { x: 0.0, y: 0.0, z: 0.0 },
-                                Vector3 { x: 1.0, y: 0.0, z: 0.0 },
+                                Vector3 {
+                                    x: 0.0,
+                                    y: 0.0,
+                                    z: 0.0,
+                                },
+                                Vector3 {
+                                    x: 1.0,
+                                    y: 0.0,
+                                    z: 0.0,
+                                },
                                 &test,
                             ),
                             3 => Renderer3D::triangle_clip_against_plane(
@@ -217,14 +229,18 @@ impl MyApp {
                                     y: 0.0,
                                     z: 0.0,
                                 },
-                                Vector3 { x: -1.0, y: 0.0, z: 0.0 },
+                                Vector3 {
+                                    x: -1.0,
+                                    y: 0.0,
+                                    z: 0.0,
+                                },
                                 &test,
                             ),
                             _ => vec![],
                         };
                         new_triangles.extend(clipped);
                     }
-            
+
                     tri_queue = new_triangles;
                 }
                 for t in tri_queue {
@@ -234,7 +250,7 @@ impl MyApp {
                         t.v3.into(),
                         t.light_color,
                     );
-    /* 
+                    /*
                     self.engine.renderer.draw_triangle(
                         t.v1.into(),
                         t.v2.into(),
@@ -243,7 +259,6 @@ impl MyApp {
                     );*/
                 }
             }
-             
         }
 
         self.engine.render(delta_time);
@@ -252,37 +267,37 @@ impl MyApp {
     pub fn update(&mut self, delta_time: f32) {
         if !self.engine.kbcontroller.is_key_down(Key::Escape) && self.window.borrow().is_open() {
             if self.engine.kbcontroller.is_key_down(Key::A) {
-                self.camera.x -= 8.0 * delta_time;
+                self.camera.position.x -= 8.0 * delta_time;
             }
 
             if self.engine.kbcontroller.is_key_down(Key::D) {
-                self.camera.x += 8.0 * delta_time;
+                self.camera.position.x += 8.0 * delta_time;
             }
 
             if self.engine.kbcontroller.is_key_down(Key::LeftShift) {
-                self.camera.y -= 8.0 * delta_time;
+                self.camera.position.y -= 8.0 * delta_time;
             }
 
             if self.engine.kbcontroller.is_key_down(Key::Space) {
-                self.camera.y += 8.0 * delta_time;
+                self.camera.position.y += 8.0 * delta_time;
             }
 
-            let v_forward = self.look_dir * (8.0 * delta_time);
+            let v_forward = self.camera.look_dir * (4.0 * delta_time);
 
             if self.engine.kbcontroller.is_key_down(Key::W) {
-                self.camera = self.camera + v_forward;
+                self.camera.position = self.camera.position + v_forward;
             }
 
             if self.engine.kbcontroller.is_key_down(Key::S) {
-                self.camera = self.camera - v_forward;
+                self.camera.position = self.camera.position - v_forward;
             }
 
             if self.engine.kbcontroller.is_key_down(Key::Right) {
-                self.f_yaw += 2.0 * delta_time;
+                self.camera.f_yaw += 2.0 * delta_time;
             }
 
             if self.engine.kbcontroller.is_key_down(Key::Left) {
-                self.f_yaw -= 2.0 * delta_time;
+                self.camera.f_yaw -= 2.0 * delta_time;
             }
         } else {
             self.engine.running = false;
