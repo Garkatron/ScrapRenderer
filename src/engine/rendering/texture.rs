@@ -87,21 +87,30 @@ impl Texture {
         }
     }
 
-    pub fn get_pixel_as_u32(&self, x: u32, y: u32) -> Option<u32> {
+    pub fn get_pixel_as_u32(&self, x: u32, y: u32, alpha: bool) -> Option<u32> {
         if x >= self.width || y >= self.height {
             return None;
         }
-        let index = (y * self.width + x) as usize * 4;
-        if index + 3 < self.data.len() {
-            let r = self.data[index] as u32;
-            let g = self.data[index + 1] as u32;
-            let b = self.data[index + 2] as u32;
-            let a = self.data[index + 3] as u32;
     
-            let color_u32 = (r << 24) | (g << 16) | (b << 8) | a;
-            Some(color_u32)
-        } else {
-            None
+        let index = ((y * self.width + x) * 4) as usize;
+        if index + 3 >= self.data.len() {
+            return None;
         }
+    
+        let r = self.data[index] as u32;
+        let g = self.data[index + 1] as u32;
+        let b = self.data[index + 2] as u32;
+        let a = self.data[index + 3] as u32;
+    
+        let color_u32 = if alpha {
+            // RGBA: red in highest byte
+            (r << 24) | (g << 16) | (b << 8) | a
+        } else {
+            // RGB only, alpha byte is 0
+            (r << 16) | (g << 8) | b
+        };
+    
+        Some(color_u32)
     }
+    
 }

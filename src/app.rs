@@ -172,7 +172,9 @@ impl MyApp {
 
         let mat_proj = Matrix4x4::project(0.1, 1000.0, 90.0, height, width);
         let mut texture_poll = TexturePool::new();
-        texture_poll.reg_from_path("test", "/home/deus/Documents/textures/Bob/grass/grass16.png");
+        texture_poll.reg_from_path("test", "/home/deus/Documents/textures/test/facebooklogo.png");
+        
+        dbg!(texture_poll.get("test").expect("msg").get_pixel_as_u32(0, 0, false).unwrap());
 
         Self {
             window: w.clone(),
