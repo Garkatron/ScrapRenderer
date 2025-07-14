@@ -112,5 +112,24 @@ impl Texture {
     
         Some(color_u32)
     }
+    pub fn sample_colour(&self, x: f32, y: f32) -> u32 {
+        let sx = (x * self.width as f32) as u32;
+        let sy = (y * (self.height as f32 - 1.0)) as u32;
     
+        if sx >= self.width || sy >= self.height {
+            return 0; // FG_BLACK equivalent (RGB: 0, 0, 0)
+        }
+    
+        let index = ((sy * self.width + sx) * 4) as usize;
+        if index + 3 >= self.data.len() {
+            return 0; // Out of bounds, return black
+        }
+    
+        let r = self.data[index] as u32;
+        let g = self.data[index + 1] as u32;
+        let b = self.data[index + 2] as u32;
+    
+        // RGB only, no alpha, in RGB format (red in highest byte for 24-bit)
+        (r << 16) | (g << 8) | b
+    }
 }

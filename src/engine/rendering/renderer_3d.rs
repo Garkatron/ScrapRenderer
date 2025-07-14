@@ -188,100 +188,194 @@ impl Renderer3D {
         uv3: Vector3<f32>,
         tex: &Texture,
     ) {
-
-        
         let (
-            mut x1, mut y1, mut u1, mut v1, mut w1,
-            mut x2, mut y2, mut u2, mut v2, mut w2,
-            mut x3, mut y3, mut u3, mut v3, mut w3
+            mut x1,
+            mut y1,
+            mut u1,
+            mut v1,
+            mut w1,
+            mut x2,
+            mut y2,
+            mut u2,
+            mut v2,
+            mut w2,
+            mut x3,
+            mut y3,
+            mut u3,
+            mut v3,
+            mut w3,
         ) = (
-            p1.x, p1.y, uv1.x, uv1.y, uv1.z,
-            p2.x, p2.y, uv2.x, uv2.y, uv2.z,
-            p3.x, p3.y, uv3.x, uv3.y, uv3.z,
+            p1.x, p1.y, uv1.x, uv1.y, uv1.z, p2.x, p2.y, uv2.x, uv2.y, uv2.z, p3.x, p3.y, uv3.x,
+            uv3.y, uv3.z,
         );
 
+        // Sort vertices by y-coordinate (y1 <= y2 <= y3)
         if y2 < y1 {
-            swap(&mut y1,&mut y2);
+            swap(&mut y1, &mut y2);
             swap(&mut x1, &mut x2);
             swap(&mut u1, &mut u2);
             swap(&mut v1, &mut v2);
+            swap(&mut w1, &mut w2);
         }
-
         if y3 < y1 {
-            swap(&mut y1,&mut y3);
+            swap(&mut y1, &mut y3);
             swap(&mut x1, &mut x3);
             swap(&mut u1, &mut u3);
             swap(&mut v1, &mut v3);
+            swap(&mut w1, &mut w3);
         }
-
         if y3 < y2 {
-            swap(&mut y3,&mut y2);
-            swap(&mut x3, &mut x2);
-            swap(&mut u3, &mut u2);
-            swap(&mut v3, &mut v2);
+            swap(&mut y2, &mut y3);
+            swap(&mut x2, &mut x3);
+            swap(&mut u2, &mut u3);
+            swap(&mut v2, &mut v3);
+            swap(&mut w2, &mut w3);
         }
-        
-        let (mut dy1, mut dx1) = (y2 - y1, x2 - x1);
-        let (mut dv1, mut du1) = (v2 - v1, u2 - u1);
-        let (mut dy2, mut dx2) = (y3 - y1, x3 - x1);
-        let (mut dv2, mut du2) = (v3 - v1, u3 - u1);
 
-        let (mut tex_u, mut tex_v) = (0.0 as f32, 0.0 as f32);
+        // Compute deltas for top-to-middle and top-to-bottom
+        let dy1 = y2 - y1;
+        let dx1 = x2 - x1;
+        let du1 = u2 - u1;
+        let dv1 = v2 - v1;
+        let dw1 = w2 - w1;
 
-        let (mut dax_step, mut dbx_step, mut du1_step, mut dv1_step, mut du2_step, mut dv2_step) = (0.0 as f32, 0.0 as f32, 0.0 as f32, 0.0 as f32, 0.0 as f32, 0.0 as f32);
+        let dy2 = y3 - y1;
+        let dx2 = x3 - x1;
+        let du2 = u3 - u1;
+        let dv2 = v3 - v1;
+        let dw2 = w3 - w1;
 
-        if dy1 != 0 {dax_step = (dx1 / dy1.abs()) as f32 }
-        if dy2 != 0 {dbx_step = (dx2 / dy2.abs()) as f32 }
+        let (mut dax_step, mut dbx_step) = (0.0_f32, 0.0_f32);
+        let (mut du1_step, mut dv1_step, mut dw1_step) = (0.0_f32, 0.0_f32, 0.0_f32);
+        let (mut du2_step, mut dv2_step, mut dw2_step) = (0.0_f32, 0.0_f32, 0.0_f32);
 
-        if dy1 != 0 {du1_step = du1 as f32 / dy1.abs() as f32 }
-        if dy1 != 0 {dv1_step = dv1 as f32 / dy1.abs() as f32 }
-
-        if dy2 != 0 {du2_step = du2 as f32 / dy2.abs() as f32 }
-        if dy2 != 0 {dv2_step = dv2 as f32 / dy2.abs() as f32 }
-
+        // Compute interpolation steps
         if dy1 != 0 {
-            for i in y1..=y2  {
+            dax_step = dx1 as f32 / dy1.abs() as f32;
+            du1_step = du1 / dy1.abs() as f32;
+            dv1_step = dv1 / dy1.abs() as f32;
+            dw1_step = dw1 / dy1.abs() as f32;
+        }
+        if dy2 != 0 {
+            dbx_step = dx2 as f32 / dy2.abs() as f32;
+            du2_step = du2 / dy2.abs() as f32;
+            dv2_step = dv2 / dy2.abs() as f32;
+            dw2_step = dw2 / dy2.abs() as f32;
+        }
+
+        // First part: top to middle (y1 to y2)
+        if dy1 != 0 {
+            for i in y1..=y2 {
                 let mut ax = x1 as f32 + (i - y1) as f32 * dax_step;
                 let mut bx = x1 as f32 + (i - y1) as f32 * dbx_step;
 
-                let mut tex_su = u1 as f32 + (i - y1) as f32 * du1_step;
-                let mut tex_sv = v1 as f32 + (i - y1) as f32 * dv1_step;
+                let mut tex_su = u1 + (i - y1) as f32 * du1_step;
+                let mut tex_sv = v1 + (i - y1) as f32 * dv1_step;
+                let mut tex_sw = w1 + (i - y1) as f32 * dw1_step;
 
-                let mut tex_eu = u1 as f32 + (i - y1) as f32 * du2_step;
-                let mut tex_ev = v1 as f32 + (i - y1) as f32 * dv2_step;
-                
+                let mut tex_eu = u1 + (i - y1) as f32 * du2_step;
+                let mut tex_ev = v1 + (i - y1) as f32 * dv2_step;
+                let mut tex_ew = w1 + (i - y1) as f32 * dw2_step;
+
                 if ax > bx {
                     swap(&mut ax, &mut bx);
                     swap(&mut tex_su, &mut tex_eu);
                     swap(&mut tex_sv, &mut tex_ev);
+                    swap(&mut tex_sw, &mut tex_ew);
                 }
 
-                tex_u = tex_su;
-                tex_v = tex_sv;
+                let tstep7 = if bx != ax { 1.0 / (bx - ax) } else { 0.0 };
+                let mut t = 0.0;
 
+                for j in (ax as i32)..(bx as i32) {
+                    let tex_u = (1.0 - t) * tex_su + t * tex_eu;
+                    let tex_v = (1.0 - t) * tex_sv + t * tex_ev;
+                    let tex_w = (1.0 - t) * tex_sw + t * tex_ew;
 
-                let tstep: f32 = 1.0 / (bx - ax) as f32;
-                let mut t: f32 = 0.0;
+                    let buffer_idx = i * self.width() as i32 + j;
+                    if buffer_idx >= 0
+                        && (buffer_idx as usize) < self.depth_buffer.len()
+                        && tex_w > self.depth_buffer[buffer_idx as usize]
+                    {
+                        let u = if tex_w != 0.0 { tex_u / tex_w } else { tex_u };
+                        let v = if tex_w != 0.0 { tex_v / tex_w } else { tex_v };
 
-                for j in ax as i32..bx as i32  {
-                    tex_u = (1.0 - t) * tex_su + t * tex_eu;
-                    tex_v = (1.0 - t) * tex_sv + t * tex_ev;
-
-                    let sx = tex_u as u32 * tex.width;
-                    let sy = tex_v as u32 * tex.height-1;
-
-                    let color = tex.get_pixel_as_u32(sx, sy, false).expect("Cant get color");
-                    self.draw_pixel(Vector2::new(j, i), color);
-
-                    t += tstep;
+                        let color = tex.sample_colour(u, v);
+                        self.draw_pixel(Vector2::new(j, i), color);
+                        self.depth_buffer[buffer_idx as usize] = tex_w;
+                    }
+                    t += tstep7;
                 }
             }
         }
 
+        // Second part: middle to bottom (y2 to y3)
+        let dy1 = y3 - y2;
+        let dx1 = x3 - x2;
+        let du1 = u3 - u2;
+        let dv1 = v3 - v2;
+        let dw1 = w3 - w2;
 
+        if dy1 != 0 {
+            dax_step = dx1 as f32 / dy1.abs() as f32;
+            du1_step = du1 / dy1.abs() as f32;
+            dv1_step = dv1 / dy1.abs() as f32;
+            dw1_step = dw1 / dy1.abs() as f32;
+        }
+
+        if dy2 != 0 {
+            dbx_step = dx2 as f32 / dy2.abs() as f32;
+            du2_step = du2 / dy2.abs() as f32;
+            dv2_step = dv2 / dy2.abs() as f32;
+            dw2_step = dw2 / dy2.abs() as f32;
+        }
+
+        if dy1 != 0 {
+            for i in y2..=y3 {
+                let mut ax = x2 as f32 + (i - y2) as f32 * dax_step;
+                let mut bx = x1 as f32 + (i - y1) as f32 * dbx_step;
+
+                let mut tex_su = u2 + (i - y2) as f32 * du1_step;
+                let mut tex_sv = v2 + (i - y2) as f32 * dv1_step;
+                let mut tex_sw = w2 + (i - y2) as f32 * dw1_step;
+
+                let mut tex_eu = u1 + (i - y1) as f32 * du2_step;
+                let mut tex_ev = v1 + (i - y1) as f32 * dv2_step;
+                let mut tex_ew = w1 + (i - y1) as f32 * dw2_step;
+
+                if ax > bx {
+                    swap(&mut ax, &mut bx);
+                    swap(&mut tex_su, &mut tex_eu);
+                    swap(&mut tex_sv, &mut tex_ev);
+                    swap(&mut tex_sw, &mut tex_ew);
+                }
+
+                let tstep = if bx != ax { 1.0 / (bx - ax) } else { 0.0 };
+                let mut t = 0.0;
+
+                for j in (ax as i32)..(bx as i32) {
+                    let tex_u = (1.0 - t) * tex_su + t * tex_eu;
+                    let tex_v = (1.0 - t) * tex_sv + t * tex_ev;
+                    let tex_w = (1.0 - t) * tex_sw + t * tex_ew;
+
+                    let buffer_idx = i * self.width() as i32 + j;
+                    if buffer_idx >= 0
+                        && (buffer_idx as usize) < self.depth_buffer.len()
+                        && tex_w > self.depth_buffer[buffer_idx as usize]
+                    {
+                        let u = if tex_w != 0.0 { tex_u / tex_w } else { tex_u };
+                        let v = if tex_w != 0.0 { tex_v / tex_w } else { tex_v };
+
+                        let color = tex.sample_colour(u, v);
+                        self.draw_pixel(Vector2::new(j, i), color);
+                        self.depth_buffer[buffer_idx as usize] = tex_w;
+                    }
+                    t += tstep;
+                }
+            }
+        }
     }
 }
-
 impl Renderer for Renderer3D {
     fn render(&mut self, delta_time: f32) {
         self.renderer_2d.render(delta_time);

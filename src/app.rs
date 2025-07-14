@@ -378,13 +378,13 @@ impl MyApp {
                     tri_queue = new_triangles;
                 }
                 for t in tri_queue {
-                    /*self.engine.renderer.fill_triangle(
+                    self.engine.renderer.fill_triangle(
                         t.v1.into(),
                         t.v2.into(),
                         t.v3.into(),
                         t.light_color,
-                    );*/
-                    self.engine.renderer.textured_triangle(t.v1.into(), t.uv[0], t.v2.into(), t.uv[1], t.v3.into(), t.uv[2], self.engine.texture_poll.get_or_panic("test"));
+                    );
+                    // self.engine.renderer.textured_triangle(t.v1.into(), t.uv[0], t.v2.into(), t.uv[1], t.v3.into(), t.uv[2], self.engine.texture_poll.get_or_panic("test"));
                     
                     self.engine.renderer.draw_triangle(
                         t.v1.into(),
