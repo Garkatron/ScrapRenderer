@@ -1,38 +1,63 @@
 #![allow(unused_variables)]
-use crate::engine::types::vector::{matrix4x4::Matrix4x4, vector3::Vector3, vector4::Vector4, vector_ops::VectorOps};
+
+use crate::engine::types::vector::{Mat4, Vec3, Vec4};
 
 pub struct Camera3D {
-    pub position: Vector3<f32>,
-    pub look_dir: Vector3<f32>,
+    pub position: Vec3,
+    pub look_dir: Vec3,
     pub f_yaw: f32,
     //pub v_target: Vector3<f32>,
 }
 
 impl Camera3D {
-    pub fn new(position: Vector3<f32>, width: usize, height: usize) -> Self {
+    pub fn new(position: Vec3, width: usize, height: usize) -> Self {
         Self {
             f_yaw: 0.0,
             position,
-            look_dir: Vector3::zero(),
-            
+            look_dir: Vec3::new(0.0, 0.0, 1.0),
         }
     }
 
-    pub fn calc_view(&mut self) -> Matrix4x4 {
-        let v_up = Vector3::up();
+    pub fn update_look_dir(&mut self) {
+        self.look_dir = Vec3::new(self.f_yaw.sin(), 0.0, self.f_yaw.cos());
+    }
 
-        let mut v_target = Vector3 {
-            x: 0.0,
-            y: 0.0,
-            z: 1.0,
-        };
+    pub fn calc_view(&self) -> Mat4 {
+        // Posición de la cámara
+        let eye = self.position;
 
-        let mat_camera_rot = Matrix4x4::rotation_y(self.f_yaw);
-        self.look_dir = Matrix4x4::multiply_vec(&mat_camera_rot, &Vector4::from_vector3(v_target, 1.0)).to_vector3();
+        // Rotación de la cámara solo por yaw
+        let yaw = self.f_yaw;
+        let look_dir = Vec3::new(yaw.sin(), 0.0, yaw.cos());
 
-        v_target = self.position + self.look_dir;
+        // Punto al que mira la cámara
+        let target = eye + look_dir;
 
-        let mat_camera = Matrix4x4::point_at(self.position, v_target, v_up);
-        Matrix4x4::quick_inverse(&mat_camera)
+        // Vector "up"
+        let up = Vec3::y();
+
+        // Forward, right y recalcular up
+        let f = (target - eye).normalize(); // forward
+        let r = f.cross(&up).normalize(); // right
+        let u = r.cross(&f); // recalculado up
+
+        Mat4::new(
+            r.x,
+            u.x,
+            -f.x,
+            0.0,
+            r.y,
+            u.y,
+            -f.y,
+            0.0,
+            r.z,
+            u.z,
+            -f.z,
+            0.0,
+            -r.dot(&eye),
+            -u.dot(&eye),
+            f.dot(&eye),
+            1.0,
+        )
     }
 }

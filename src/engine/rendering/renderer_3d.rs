@@ -8,7 +8,7 @@ use crate::engine::{
     },
     types::{
         triangle::Triangle,
-        vector::{vector_ops::VectorOps, vector2::Vector2, vector3::Vector3, vector4::Vector4},
+        vector::{Vec2i, Vec3, Vec4},
     },
 };
 
@@ -32,23 +32,28 @@ impl Renderer3D {
 
     // https://github.com/OneLoneCoder/Javidx9/blob/master/ConsoleGameEngine/BiggerProjects/Engine3D/OneLoneCoder_olcEngine3D_Part3.cpp
     pub fn intersect_plane(
-        plane_p: Vector4<f32>,    // A known point on the plane
-        plane_n: Vector4<f32>,    // The normal vector of the plane
-        line_start: Vector4<f32>, // Start point of the line
-        line_end: Vector4<f32>,   // End point of the line
-    ) -> (Vector4<f32>, f32) {
+        plane_p: Vec3,    // A known point on the plane
+        plane_n: Vec3,    // The normal vector of the planeen
+        line_start: Vec3, // Start point of the line
+        line_end: Vec3,   // End point of the line
+    ) -> (Vec3, f32) {
         // Normalize the plane's normal vector
         let plane_n = plane_n.normalize();
 
         // Calculate the plane's constant term: D = -N · P
-        let plane_d = -plane_n.dot(plane_p);
+        let plane_d = -plane_n.dot(&plane_p);
 
         // Get the dot product of the line start and end with the plane normal
-        let ad = line_start.dot(plane_n);
-        let bd = line_end.dot(plane_n);
+        let ad = line_start.dot(&plane_n);
+        let bd = line_end.dot(&plane_n);
+
+        let denom = bd - ad;
+        if denom.abs() < f32::EPSILON {
+            return (line_start, 0.0); // Line is parallel to plane
+        }
 
         // Compute the parameter t to find the intersection point along the line
-        let t = (-plane_d - ad) / (bd - ad);
+        let t = (-plane_d - ad) / denom;
 
         // Get the direction vector from start to end
         let line_start_to_end = line_end - line_start;
@@ -64,20 +69,22 @@ impl Renderer3D {
     /// Intersects a triangle with a plane, possibly clipping it into 0, 1 or 2 triangles.
     /// Returns a vector of resulting triangles.
     pub fn triangle_clip_against_plane(
-        plane_p: Vector4<f32>,
-        plane_n: Vector4<f32>,
+        plane_p: Vec4,
+        plane_n: Vec4,
         in_tri: &Triangle,
     ) -> Vec<Triangle> {
-        let plane_n = plane_n.normalize();
+        let plane_p3: Vec3 = plane_p.fixed_rows::<3>(0).into(); // Extrae x,y,z
+        let plane_n3: Vec3 = plane_n.fixed_rows::<3>(0).into();
+        let plane_n3 = plane_n3.normalize();
 
         // Signed distance from point to plane
-        let dist = |p: &Vector4<f32>| -> f32 { plane_n.dot(*p) - plane_n.dot(plane_p) };
+        let dist = |p: &Vec3| -> f32 { plane_n3.dot(p) - plane_n3.dot(&plane_p3) };
 
         // Classify each vertex as inside or outside
-        let mut inside_points: Vec<Vector4<f32>> = Vec::new();
-        let mut outside_points: Vec<Vector4<f32>> = Vec::new();
-        let mut inside_points_tex: Vec<Vector3<f32>> = Vec::new();
-        let mut outside_points_tex: Vec<Vector3<f32>> = Vec::new();
+        let mut inside_points: Vec<Vec3> = Vec::new();
+        let mut outside_points: Vec<Vec3> = Vec::new();
+        let mut inside_points_tex: Vec<Vec3> = Vec::new();
+        let mut outside_points_tex: Vec<Vec3> = Vec::new();
 
         // Get signed distance of each point in the triangle to plane
         let d0 = dist(&in_tri.v1);
@@ -120,16 +127,18 @@ impl Renderer3D {
             1 => {
                 // 1 point inside, 2 outside — clip into 1 triangle
                 let p0 = inside_points[0];
-                let (p1, t1) = Renderer3D::intersect_plane(plane_p, plane_n, p0, outside_points[0]);
-                let (p2, t2) = Renderer3D::intersect_plane(plane_p, plane_n, p0, outside_points[1]);
+                let (p1, t1) =
+                    Renderer3D::intersect_plane(plane_p3, plane_n3, p0, outside_points[0]);
+                let (p2, t2) =
+                    Renderer3D::intersect_plane(plane_p3, plane_n3, p0, outside_points[1]);
 
                 let p0_tex = inside_points_tex[0];
-                let uv1 = Vector3::new(
+                let uv1 = Vec3::new(
                     p0_tex.x + t1 * (outside_points_tex[0].x - p0_tex.x),
                     p0_tex.y + t1 * (outside_points_tex[0].y - p0_tex.y),
                     1.0,
                 );
-                let uv2 = Vector3::new(
+                let uv2 = Vec3::new(
                     p0_tex.x + t2 * (outside_points_tex[1].x - p0_tex.x),
                     p0_tex.y + t2 * (outside_points_tex[1].y - p0_tex.y),
                     1.0,
@@ -145,17 +154,19 @@ impl Renderer3D {
                 // 2 points inside, 1 outside — clip into 2 triangles (a quad)
                 let p0 = inside_points[0];
                 let p1 = inside_points[1];
-                let (i0, t0) = Renderer3D::intersect_plane(plane_p, plane_n, p0, outside_points[0]);
-                let (i1, t1) = Renderer3D::intersect_plane(plane_p, plane_n, p1, outside_points[0]);
+                let (i0, t0) =
+                    Renderer3D::intersect_plane(plane_p3, plane_n3, p0, outside_points[0]);
+                let (i1, t1) =
+                    Renderer3D::intersect_plane(plane_p3, plane_n3, p1, outside_points[0]);
 
                 let p0_tex = inside_points_tex[0];
                 let p1_tex = inside_points_tex[1];
-                let uv0 = Vector3::new(
+                let uv0 = Vec3::new(
                     p0_tex.x + t0 * (outside_points_tex[0].x - p0_tex.x),
                     p0_tex.y + t0 * (outside_points_tex[0].y - p0_tex.y),
                     1.0,
                 );
-                let uv1 = Vector3::new(
+                let uv1 = Vec3::new(
                     p1_tex.x + t1 * (outside_points_tex[0].x - p1_tex.x),
                     p1_tex.y + t1 * (outside_points_tex[0].y - p1_tex.y),
                     1.0,
@@ -180,12 +191,12 @@ impl Renderer3D {
 
     pub fn textured_triangle(
         &mut self,
-        p1: Vector2<i32>,
-        uv1: Vector3<f32>,
-        p2: Vector2<i32>,
-        uv2: Vector3<f32>,
-        p3: Vector2<i32>,
-        uv3: Vector3<f32>,
+        p1: Vec3,
+        uv1: Vec3,
+        p2: Vec3,
+        uv2: Vec3,
+        p3: Vec3,
+        uv3: Vec3,
         tex: &Texture,
     ) {
         let (
@@ -209,7 +220,7 @@ impl Renderer3D {
             uv3.y, uv3.z,
         );
 
-        // Sort vertices by y-coordinate (y1 <= y2 <= y3)
+        // Ordenar vértices por coordenada y (y1 <= y2 <= y3)
         if y2 < y1 {
             swap(&mut y1, &mut y2);
             swap(&mut x1, &mut x2);
@@ -232,7 +243,6 @@ impl Renderer3D {
             swap(&mut w2, &mut w3);
         }
 
-        // Compute deltas for top-to-middle and top-to-bottom
         let dy1 = y2 - y1;
         let dx1 = x2 - x1;
         let du1 = u2 - u1;
@@ -245,103 +255,43 @@ impl Renderer3D {
         let dv2 = v3 - v1;
         let dw2 = w3 - w1;
 
-        let (mut dax_step, mut dbx_step) = (0.0_f32, 0.0_f32);
-        let (mut du1_step, mut dv1_step, mut dw1_step) = (0.0_f32, 0.0_f32, 0.0_f32);
-        let (mut du2_step, mut dv2_step, mut dw2_step) = (0.0_f32, 0.0_f32, 0.0_f32);
+        let mut dax_step = 0.0_f32;
+        let mut dbx_step = 0.0_f32;
+        let mut du1_step = 0.0_f32;
+        let mut dv1_step = 0.0_f32;
+        let mut dw1_step = 0.0_f32;
+        let mut du2_step = 0.0_f32;
+        let mut dv2_step = 0.0_f32;
+        let mut dw2_step = 0.0_f32;
 
-        // Compute interpolation steps
-        if dy1 != 0 {
-            dax_step = dx1 as f32 / dy1.abs() as f32;
-            du1_step = du1 / dy1.abs() as f32;
-            dv1_step = dv1 / dy1.abs() as f32;
-            dw1_step = dw1 / dy1.abs() as f32;
-        }
-        if dy2 != 0 {
-            dbx_step = dx2 as f32 / dy2.abs() as f32;
-            du2_step = du2 / dy2.abs() as f32;
-            dv2_step = dv2 / dy2.abs() as f32;
-            dw2_step = dw2 / dy2.abs() as f32;
+        if dy1 != 0.0 {
+            dax_step = dx1 / dy1.abs();
+            du1_step = du1 / dy1.abs();
+            dv1_step = dv1 / dy1.abs();
+            dw1_step = dw1 / dy1.abs();
         }
 
-        // First part: top to middle (y1 to y2)
-        if dy1 != 0 {
-            for i in y1..=y2 {
-                let mut ax = x1 as f32 + (i - y1) as f32 * dax_step;
-                let mut bx = x1 as f32 + (i - y1) as f32 * dbx_step;
-
-                let mut tex_su = u1 + (i - y1) as f32 * du1_step;
-                let mut tex_sv = v1 + (i - y1) as f32 * dv1_step;
-                let mut tex_sw = w1 + (i - y1) as f32 * dw1_step;
-
-                let mut tex_eu = u1 + (i - y1) as f32 * du2_step;
-                let mut tex_ev = v1 + (i - y1) as f32 * dv2_step;
-                let mut tex_ew = w1 + (i - y1) as f32 * dw2_step;
-
-                if ax > bx {
-                    swap(&mut ax, &mut bx);
-                    swap(&mut tex_su, &mut tex_eu);
-                    swap(&mut tex_sv, &mut tex_ev);
-                    swap(&mut tex_sw, &mut tex_ew);
-                }
-
-                let tstep7 = if bx != ax { 1.0 / (bx - ax) } else { 0.0 };
-                let mut t = 0.0;
-
-                for j in (ax as i32)..(bx as i32) {
-                    let tex_u = (1.0 - t) * tex_su + t * tex_eu;
-                    let tex_v = (1.0 - t) * tex_sv + t * tex_ev;
-                    let tex_w = (1.0 - t) * tex_sw + t * tex_ew;
-
-                    let buffer_idx = i * self.width() as i32 + j;
-                    if buffer_idx >= 0
-                        && (buffer_idx as usize) < self.depth_buffer.len()
-                        && tex_w > self.depth_buffer[buffer_idx as usize]
-                    {
-                        let u = if tex_w != 0.0 { tex_u / tex_w } else { tex_u };
-                        let v = if tex_w != 0.0 { tex_v / tex_w } else { tex_v };
-
-                        let color = tex.sample_colour(u, v);
-                        self.draw_pixel(Vector2::new(j, i), color);
-                        self.depth_buffer[buffer_idx as usize] = tex_w;
-                    }
-                    t += tstep7;
-                }
-            }
+        if dy2 != 0.0 {
+            dbx_step = dx2 / dy2.abs();
+            du2_step = du2 / dy2.abs();
+            dv2_step = dv2 / dy2.abs();
+            dw2_step = dw2 / dy2.abs();
         }
 
-        // Second part: middle to bottom (y2 to y3)
-        let dy1 = y3 - y2;
-        let dx1 = x3 - x2;
-        let du1 = u3 - u2;
-        let dv1 = v3 - v2;
-        let dw1 = w3 - w2;
+        // Primera parte: top to middle
+        if dy1 != 0.0 {
+            for i in y1 as i32..=y2 as i32 {
+                let fy = i as f32;
+                let mut ax = x1 + (fy - y1) * dax_step;
+                let mut bx = x1 + (fy - y1) * dbx_step;
 
-        if dy1 != 0 {
-            dax_step = dx1 as f32 / dy1.abs() as f32;
-            du1_step = du1 / dy1.abs() as f32;
-            dv1_step = dv1 / dy1.abs() as f32;
-            dw1_step = dw1 / dy1.abs() as f32;
-        }
+                let mut tex_su = u1 + (fy - y1) * du1_step;
+                let mut tex_sv = v1 + (fy - y1) * dv1_step;
+                let mut tex_sw = w1 + (fy - y1) * dw1_step;
 
-        if dy2 != 0 {
-            dbx_step = dx2 as f32 / dy2.abs() as f32;
-            du2_step = du2 / dy2.abs() as f32;
-            dv2_step = dv2 / dy2.abs() as f32;
-            dw2_step = dw2 / dy2.abs() as f32;
-        }
-
-        if dy1 != 0 {
-            for i in y2..=y3 {
-                let mut ax = x2 as f32 + (i - y2) as f32 * dax_step;
-                let mut bx = x1 as f32 + (i - y1) as f32 * dbx_step;
-
-                let mut tex_su = u2 + (i - y2) as f32 * du1_step;
-                let mut tex_sv = v2 + (i - y2) as f32 * dv1_step;
-                let mut tex_sw = w2 + (i - y2) as f32 * dw1_step;
-
-                let mut tex_eu = u1 + (i - y1) as f32 * du2_step;
-                let mut tex_ev = v1 + (i - y1) as f32 * dv2_step;
-                let mut tex_ew = w1 + (i - y1) as f32 * dw2_step;
+                let mut tex_eu = u1 + (fy - y1) * du2_step;
+                let mut tex_ev = v1 + (fy - y1) * dv2_step;
+                let mut tex_ew = w1 + (fy - y1) * dw2_step;
 
                 if ax > bx {
                     swap(&mut ax, &mut bx);
@@ -353,7 +303,7 @@ impl Renderer3D {
                 let tstep = if bx != ax { 1.0 / (bx - ax) } else { 0.0 };
                 let mut t = 0.0;
 
-                for j in (ax as i32)..(bx as i32) {
+                for j in ax as i32..bx as i32 {
                     let tex_u = (1.0 - t) * tex_su + t * tex_eu;
                     let tex_v = (1.0 - t) * tex_sv + t * tex_ev;
                     let tex_w = (1.0 - t) * tex_sw + t * tex_ew;
@@ -367,7 +317,74 @@ impl Renderer3D {
                         let v = if tex_w != 0.0 { tex_v / tex_w } else { tex_v };
 
                         let color = tex.sample_colour(u, v);
-                        self.draw_pixel(Vector2::new(j, i), color);
+                        self.draw_pixel(Vec2i::new(j, i), color);
+                        self.depth_buffer[buffer_idx as usize] = tex_w;
+                    }
+                    t += tstep;
+                }
+            }
+        }
+
+        // Segunda parte: middle to bottom
+        let dy1 = y3 - y2;
+        let dx1 = x3 - x2;
+        let du1 = u3 - u2;
+        let dv1 = v3 - v2;
+        let dw1 = w3 - w2;
+
+        if dy1 != 0.0 {
+            dax_step = dx1 / dy1.abs();
+            du1_step = du1 / dy1.abs();
+            dv1_step = dv1 / dy1.abs();
+            dw1_step = dw1 / dy1.abs();
+        }
+
+        if dy2 != 0.0 {
+            dbx_step = dx2 / dy2.abs();
+            du2_step = du2 / dy2.abs();
+            dv2_step = dv2 / dy2.abs();
+            dw2_step = dw2 / dy2.abs();
+        }
+
+        if dy1 != 0.0 {
+            for i in y2 as i32..=y3 as i32 {
+                let fy = i as f32;
+                let mut ax = x2 + (fy - y2) * dax_step;
+                let mut bx = x1 + (fy - y1) * dbx_step;
+
+                let mut tex_su = u2 + (fy - y2) * du1_step;
+                let mut tex_sv = v2 + (fy - y2) * dv1_step;
+                let mut tex_sw = w2 + (fy - y2) * dw1_step;
+
+                let mut tex_eu = u1 + (fy - y1) * du2_step;
+                let mut tex_ev = v1 + (fy - y1) * dv2_step;
+                let mut tex_ew = w1 + (fy - y1) * dw2_step;
+
+                if ax > bx {
+                    swap(&mut ax, &mut bx);
+                    swap(&mut tex_su, &mut tex_eu);
+                    swap(&mut tex_sv, &mut tex_ev);
+                    swap(&mut tex_sw, &mut tex_ew);
+                }
+
+                let tstep = if bx != ax { 1.0 / (bx - ax) } else { 0.0 };
+                let mut t = 0.0;
+
+                for j in ax as i32..bx as i32 {
+                    let tex_u = (1.0 - t) * tex_su + t * tex_eu;
+                    let tex_v = (1.0 - t) * tex_sv + t * tex_ev;
+                    let tex_w = (1.0 - t) * tex_sw + t * tex_ew;
+
+                    let buffer_idx = i * self.width() as i32 + j;
+                    if buffer_idx >= 0
+                        && (buffer_idx as usize) < self.depth_buffer.len()
+                        && tex_w > self.depth_buffer[buffer_idx as usize]
+                    {
+                        let u = if tex_w != 0.0 { tex_u / tex_w } else { tex_u };
+                        let v = if tex_w != 0.0 { tex_v / tex_w } else { tex_v };
+
+                        let color = tex.sample_colour(u, v);
+                        self.draw_pixel(Vec2i::new(j, i), color);
                         self.depth_buffer[buffer_idx as usize] = tex_w;
                     }
                     t += tstep;
@@ -376,6 +393,7 @@ impl Renderer3D {
         }
     }
 }
+
 impl Renderer for Renderer3D {
     fn render(&mut self, delta_time: f32) {
         self.renderer_2d.render(delta_time);
@@ -385,23 +403,16 @@ impl Renderer for Renderer3D {
         self.renderer_2d.clear(color);
     }
 
-    fn draw_pixel(&mut self, pos: Vector2<i32>, color: u32) {
+    fn draw_pixel(&mut self, pos: Vec2i, color: u32) {
         self.renderer_2d.draw_pixel(pos, color);
     }
 
-    fn draw_square(
-        &mut self,
-        a: Vector2<i32>,
-        b: Vector2<i32>,
-        color: u32,
-        filled: bool,
-        fill_color: u32,
-    ) {
+    fn draw_square(&mut self, a: Vec2i, b: Vec2i, color: u32, filled: bool, fill_color: u32) {
         self.renderer_2d
             .draw_square(a, b, color, filled, fill_color);
     }
 
-    fn draw_line(&mut self, a: Vector2<i32>, b: Vector2<i32>, color: u32) {
+    fn draw_line(&mut self, a: Vec2i, b: Vec2i, color: u32) {
         self.renderer_2d.draw_line(a, b, color);
     }
 
@@ -413,14 +424,14 @@ impl Renderer for Renderer3D {
         self.renderer_2d.height()
     }
 
-    fn draw_triangle(&mut self, a: Vector2<i32>, b: Vector2<i32>, c: Vector2<i32>, color: u32) {
+    fn draw_triangle(&mut self, a: Vec2i, b: Vec2i, c: Vec2i, color: u32) {
         self.renderer_2d.draw_triangle(a, b, c, color)
     }
 
-    fn fill_triangle(&mut self, a: Vector2<i32>, b: Vector2<i32>, c: Vector2<i32>, color: u32) {
+    fn fill_triangle(&mut self, a: Vec2i, b: Vec2i, c: Vec2i, color: u32) {
         self.renderer_2d.fill_triangle(a, b, c, color)
     }
-    fn get_x_at_y(&self, p1: Vector2<i32>, p2: Vector2<i32>, y: i32) -> i32 {
+    fn get_x_at_y(&self, p1: Vec2i, p2: Vec2i, y: i32) -> i32 {
         self.renderer_2d.get_x_at_y(p1, p2, y)
     }
 }

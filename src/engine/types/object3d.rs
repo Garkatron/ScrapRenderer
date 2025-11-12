@@ -1,42 +1,37 @@
-use crate::engine::types::vector::{matrix4x4::Matrix4x4, vector3::Vector3, vector_ops::VectorOps};
+use nalgebra::{Rotation3, Translation3};
 
+use crate::engine::types::vector::{Mat4, Vec3};
 
 pub struct Object3D {
-    pub position: Vector3<f32>,
-    pub rotation: Vector3<f32>, // pitch (X), yaw (Y), roll (Z)
+    pub position: Vec3,
+    pub rotation: Vec3, // pitch (X), yaw (Y), roll (Z)
 }
 
 impl Object3D {
-
-    pub fn new(position: Vector3<f32>, rotation: Vector3<f32>) -> Self {
+    pub fn new(position: Vec3, rotation: Vec3) -> Self {
         Self { position, rotation }
     }
 
     pub fn zero() -> Self {
         Self {
-            position: Vector3::zero(), rotation: Vector3::zero()
+            position: Vec3::zeros(),
+            rotation: Vec3::zeros(),
         }
     }
 
-    pub fn rotation_matrix(&self) -> Matrix4x4 {
-        let (rx, ry, rz) = (
-            self.rotation.x,
-            self.rotation.y,
-            self.rotation.z,
-        );
+    pub fn rotation_matrix(&self) -> Mat4 {
+        let (pitch, yaw, roll) = (self.rotation.x, self.rotation.y, self.rotation.z);
 
-        let rot_x = Matrix4x4::rotation_x(rx);
-        let rot_y = Matrix4x4::rotation_y(ry);
-        let rot_z = Matrix4x4::rotation_z(rz);
+        let rotation = Rotation3::from_euler_angles(pitch, yaw, roll);
 
-        // Orden típica: Z * X * Y o Y * X * Z dependiendo del motor
-        Matrix4x4::multiply_matrix(&rot_y, &Matrix4x4::multiply_matrix(&rot_x, &rot_z))
+        rotation.to_homogeneous()
     }
 
-    pub fn transform_matrix(&self) -> Matrix4x4 {
-        let trans = Matrix4x4::translation(self.position);
-        let rot = self.rotation_matrix();
-        Matrix4x4::multiply_matrix(&rot, &trans)
+    pub fn transform_matrix(&self) -> Mat4 {
+        // Future scale here
+
+        let translation = Translation3::from(self.position).to_homogeneous();
+        let rotation = self.rotation_matrix();
+        translation * rotation
     }
-    
 }

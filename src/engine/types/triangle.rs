@@ -1,27 +1,26 @@
-use crate::engine::types::vector::{vector3::Vector3, vector4::Vector4, vector_ops::VectorOps};
-
+use crate::engine::types::vector::Vec3;
 
 #[derive(Clone, PartialEq)]
 pub struct Triangle {
-    pub v1: Vector4<f32>,
-    pub v2: Vector4<f32>,
-    pub v3: Vector4<f32>,
+    pub v1: Vec3,
+    pub v2: Vec3,
+    pub v3: Vec3,
     pub light_color: u32,
-    pub uv: [Vector3<f32>; 3],
+    pub uv: [Vec3; 3],
 }
 
 impl Triangle {
-    pub fn new(v1: Vector4<f32>, v2: Vector4<f32>, v3: Vector4<f32>) -> Self {
+    pub fn new(v1: Vec3, v2: Vec3, v3: Vec3) -> Self {
         Self {
             v1,
             v2,
             v3,
             light_color: 0,
-            uv: [Vector3::zero(); 3]
+            uv: [Vec3::zeros(); 3],
         }
     }
 
-    pub fn set_uv(mut self, uv: [Vector3<f32>; 3]) -> Self {
+    pub fn set_uv(mut self, uv: [Vec3; 3]) -> Self {
         self.uv = uv;
         self
     }
@@ -35,12 +34,11 @@ impl Triangle {
 impl Default for Triangle {
     fn default() -> Self {
         Self {
-            v1: Vector4::zero(),
-            v2: Vector4::zero(),
-            v3: Vector4::zero(),
+            v1: Vec3::zeros(),
+            v2: Vec3::zeros(),
+            v3: Vec3::zeros(),
             light_color: 0,
-            uv: [Vector3::zero(); 3]
+            uv: [Vec3::zeros(); 3],
         }
     }
 }
-
