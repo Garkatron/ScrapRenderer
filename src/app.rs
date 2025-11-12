@@ -15,15 +15,19 @@ use crate::engine::{
     rendering::{
         camera::Camera3D,
         mesh::Mesh,
-        palettes::{PaletteDefault, PalettePink, PALETTE_DEFAULT, PALETTE_PINK},
+        palettes::{PALETTE_DEFAULT, PALETTE_PINK, PaletteDefault, PalettePink},
         renderer::Renderer,
-        renderer_3d::Renderer3D, texture_poll::TexturePool,
+        renderer_3d::Renderer3D,
+        texture_poll::TexturePool,
     },
     types::{
         object3d::Object3D,
         triangle::Triangle,
         vector::{
-            matrix4x4::{self, Matrix4x4}, vector3::Vector3, vector4::Vector4, vector_ops::VectorOps
+            matrix4x4::{self, Matrix4x4},
+            vector_ops::VectorOps,
+            vector3::Vector3,
+            vector4::Vector4,
         },
     },
 };
@@ -58,7 +62,8 @@ impl MyApp {
                     Vector4::new(0.0, 0.0, 0.0, 1.0),
                     Vector4::new(0.0, 1.0, 0.0, 1.0),
                     Vector4::new(1.0, 1.0, 0.0, 1.0),
-                ).set_uv([
+                )
+                .set_uv([
                     Vector3::new(0.0, 1.0, 1.0),
                     Vector3::new(0.0, 0.0, 1.0),
                     Vector3::new(1.0, 0.0, 1.0),
@@ -67,7 +72,8 @@ impl MyApp {
                     Vector4::new(0.0, 0.0, 0.0, 1.0),
                     Vector4::new(1.0, 1.0, 0.0, 1.0),
                     Vector4::new(1.0, 0.0, 0.0, 1.0),
-                ).set_uv([
+                )
+                .set_uv([
                     Vector3::new(0.0, 1.0, 1.0),
                     Vector3::new(1.0, 0.0, 1.0),
                     Vector3::new(1.0, 1.0, 1.0),
@@ -77,7 +83,8 @@ impl MyApp {
                     Vector4::new(1.0, 0.0, 0.0, 1.0),
                     Vector4::new(1.0, 1.0, 0.0, 1.0),
                     Vector4::new(1.0, 1.0, 1.0, 1.0),
-                ).set_uv([
+                )
+                .set_uv([
                     Vector3::new(0.0, 1.0, 1.0),
                     Vector3::new(0.0, 0.0, 1.0),
                     Vector3::new(1.0, 0.0, 1.0),
@@ -86,7 +93,8 @@ impl MyApp {
                     Vector4::new(1.0, 0.0, 0.0, 1.0),
                     Vector4::new(1.0, 1.0, 1.0, 1.0),
                     Vector4::new(1.0, 0.0, 1.0, 1.0),
-                ).set_uv([
+                )
+                .set_uv([
                     Vector3::new(0.0, 1.0, 1.0),
                     Vector3::new(1.0, 0.0, 1.0),
                     Vector3::new(1.0, 1.0, 1.0),
@@ -96,7 +104,8 @@ impl MyApp {
                     Vector4::new(1.0, 0.0, 1.0, 1.0),
                     Vector4::new(1.0, 1.0, 1.0, 1.0),
                     Vector4::new(0.0, 1.0, 1.0, 1.0),
-                ).set_uv([
+                )
+                .set_uv([
                     Vector3::new(0.0, 1.0, 1.0),
                     Vector3::new(0.0, 0.0, 1.0),
                     Vector3::new(1.0, 0.0, 1.0),
@@ -105,7 +114,8 @@ impl MyApp {
                     Vector4::new(1.0, 0.0, 1.0, 1.0),
                     Vector4::new(0.0, 1.0, 1.0, 1.0),
                     Vector4::new(0.0, 0.0, 1.0, 1.0),
-                ).set_uv([
+                )
+                .set_uv([
                     Vector3::new(0.0, 1.0, 1.0),
                     Vector3::new(1.0, 0.0, 1.0),
                     Vector3::new(1.0, 1.0, 1.0),
@@ -115,7 +125,8 @@ impl MyApp {
                     Vector4::new(0.0, 0.0, 1.0, 1.0),
                     Vector4::new(0.0, 1.0, 1.0, 1.0),
                     Vector4::new(0.0, 1.0, 0.0, 1.0),
-                ).set_uv([
+                )
+                .set_uv([
                     Vector3::new(0.0, 1.0, 1.0),
                     Vector3::new(0.0, 0.0, 1.0),
                     Vector3::new(1.0, 0.0, 1.0),
@@ -124,7 +135,8 @@ impl MyApp {
                     Vector4::new(0.0, 0.0, 1.0, 1.0),
                     Vector4::new(0.0, 1.0, 0.0, 1.0),
                     Vector4::new(0.0, 0.0, 0.0, 1.0),
-                ).set_uv([
+                )
+                .set_uv([
                     Vector3::new(0.0, 1.0, 1.0),
                     Vector3::new(1.0, 0.0, 1.0),
                     Vector3::new(1.0, 1.0, 1.0),
@@ -134,7 +146,8 @@ impl MyApp {
                     Vector4::new(0.0, 1.0, 0.0, 1.0),
                     Vector4::new(0.0, 1.0, 1.0, 1.0),
                     Vector4::new(1.0, 1.0, 1.0, 1.0),
-                ).set_uv([
+                )
+                .set_uv([
                     Vector3::new(0.0, 1.0, 1.0),
                     Vector3::new(0.0, 0.0, 1.0),
                     Vector3::new(1.0, 0.0, 1.0),
@@ -143,7 +156,8 @@ impl MyApp {
                     Vector4::new(0.0, 1.0, 0.0, 1.0),
                     Vector4::new(1.0, 1.0, 1.0, 1.0),
                     Vector4::new(1.0, 1.0, 0.0, 1.0),
-                ).set_uv([
+                )
+                .set_uv([
                     Vector3::new(0.0, 1.0, 1.0),
                     Vector3::new(1.0, 0.0, 1.0),
                     Vector3::new(1.0, 1.0, 1.0),
@@ -153,7 +167,8 @@ impl MyApp {
                     Vector4::new(1.0, 0.0, 1.0, 1.0),
                     Vector4::new(0.0, 0.0, 1.0, 1.0),
                     Vector4::new(0.0, 0.0, 0.0, 1.0),
-                ).set_uv([
+                )
+                .set_uv([
                     Vector3::new(0.0, 1.0, 1.0),
                     Vector3::new(0.0, 0.0, 1.0),
                     Vector3::new(1.0, 0.0, 1.0),
@@ -162,7 +177,8 @@ impl MyApp {
                     Vector4::new(1.0, 0.0, 1.0, 1.0),
                     Vector4::new(0.0, 0.0, 0.0, 1.0),
                     Vector4::new(1.0, 0.0, 0.0, 1.0),
-                ).set_uv([
+                )
+                .set_uv([
                     Vector3::new(0.0, 1.0, 1.0),
                     Vector3::new(1.0, 0.0, 1.0),
                     Vector3::new(1.0, 1.0, 1.0),
@@ -172,9 +188,9 @@ impl MyApp {
 
         let mat_proj = Matrix4x4::project(0.1, 1000.0, 90.0, height, width);
         let mut texture_poll = TexturePool::new();
-        texture_poll.reg_from_path("test", "/home/deus/Documents/textures/test/facebooklogo.png");
-        
-        dbg!(texture_poll.get("test").expect("msg").get_pixel_as_u32(0, 0, false).unwrap());
+        //texture_poll.reg_from_path("test", "/home/deus/Documents/textures/test/facebooklogo.png");
+
+        // dbg!(texture_poll.get("test").expect("msg").get_pixel_as_u32(0, 0, false).unwrap());
 
         Self {
             window: w.clone(),
@@ -182,7 +198,7 @@ impl MyApp {
                 running: true,
                 renderer: Renderer3D::new(vec![0; width * height], width, height, w.clone()),
                 kbcontroller: KeyboardController::new(w.clone()),
-                texture_poll
+                texture_poll,
             },
             //kbcontroller: KeyboardController::new(&window)
             objects,
@@ -247,9 +263,12 @@ impl MyApp {
                     let colour: u32 = Renderer3D::get_shading_color(dp, &PalettePink);
 
                     let viewed_triangle = Triangle::new(
-                        Matrix4x4::multiply_vec(&camera_matrix, &tri_transformed.v1).perspective_divide(),
-                        Matrix4x4::multiply_vec(&camera_matrix, &tri_transformed.v2).perspective_divide(),
-                        Matrix4x4::multiply_vec(&camera_matrix, &tri_transformed.v3).perspective_divide(),
+                        Matrix4x4::multiply_vec(&camera_matrix, &tri_transformed.v1)
+                            .perspective_divide(),
+                        Matrix4x4::multiply_vec(&camera_matrix, &tri_transformed.v2)
+                            .perspective_divide(),
+                        Matrix4x4::multiply_vec(&camera_matrix, &tri_transformed.v3)
+                            .perspective_divide(),
                     )
                     .set_light_color(colour);
 
@@ -260,13 +279,13 @@ impl MyApp {
                             x: 0.0,
                             y: 0.0,
                             z: 0.2,
-                            w: 1.0
+                            w: 1.0,
                         },
                         Vector4 {
                             x: 0.0,
                             y: 0.0,
                             z: 1.0,
-                            w: 1.0
+                            w: 1.0,
                         },
                         &viewed_triangle,
                     );
@@ -315,13 +334,13 @@ impl MyApp {
                                     x: 0.0,
                                     y: 0.0,
                                     z: 0.0,
-                                    w: 1.0
+                                    w: 1.0,
                                 },
                                 Vector4 {
                                     x: 0.0,
                                     y: 1.0,
                                     z: 0.0,
-                                    w: 1.0
+                                    w: 1.0,
                                 },
                                 &test,
                             ),
@@ -330,13 +349,13 @@ impl MyApp {
                                     x: 0.0,
                                     y: (self.engine.renderer.height() as f32) - 1.0,
                                     z: 0.0,
-                                    w: 1.0
+                                    w: 1.0,
                                 },
                                 Vector4 {
                                     x: 0.0,
                                     y: -1.0,
                                     z: 0.0,
-                                    w: 1.0
+                                    w: 1.0,
                                 },
                                 &test,
                             ),
@@ -345,13 +364,13 @@ impl MyApp {
                                     x: 0.0,
                                     y: 0.0,
                                     z: 0.0,
-                                    w: 1.0
+                                    w: 1.0,
                                 },
                                 Vector4 {
                                     x: 1.0,
                                     y: 0.0,
                                     z: 0.0,
-                                    w: 1.0
+                                    w: 1.0,
                                 },
                                 &test,
                             ),
@@ -360,13 +379,13 @@ impl MyApp {
                                     x: (self.engine.renderer.width() as f32) - 1.0,
                                     y: 0.0,
                                     z: 0.0,
-                                    w: 1.0
+                                    w: 1.0,
                                 },
                                 Vector4 {
                                     x: -1.0,
                                     y: 0.0,
                                     z: 0.0,
-                                    w: 1.0
+                                    w: 1.0,
                                 },
                                 &test,
                             ),
@@ -385,7 +404,7 @@ impl MyApp {
                         t.light_color,
                     );
                     // self.engine.renderer.textured_triangle(t.v1.into(), t.uv[0], t.v2.into(), t.uv[1], t.v3.into(), t.uv[2], self.engine.texture_poll.get_or_panic("test"));
-                    
+
                     self.engine.renderer.draw_triangle(
                         t.v1.into(),
                         t.v2.into(),
